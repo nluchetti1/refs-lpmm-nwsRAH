@@ -5,10 +5,10 @@
     "area": "the NWS Raleigh CWA"
   },
   "extent": [
-    -81.2,
-    -76.9,
-    34.2,
-    37.0
+    -84.8,
+    -74.0,
+    31.0,
+    39.0
   ],
   "thresholds": [
     1.0,
@@ -218,10 +218,7 @@
     "GSO",
     "INT",
     "FAY",
-    "RWI",
-    "SOP",
-    "GWW",
-    "HNZ"
+    "RWI"
   ],
   "regime": {
     "name": "GSO",

@@ -110,6 +110,10 @@
   .up { color: var(--run12); } .down { color: var(--latest); } .flat { color: var(--muted); }
   .p-hi { color: var(--run12); font-weight: 600; } .p-mid { color: var(--run6); } .p-lo { color: var(--muted); }
 
+  .site-pick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; }
+  .site-pick label { font: 700 15px var(--display); color: var(--text); }
+  .site-pick select { background: var(--panel); color: var(--text); border: 1px solid var(--latest); border-radius: 4px;
+                      font: 600 15px var(--display); padding: 5px 30px 5px 10px; min-width: 220px; cursor: pointer; color-scheme: dark; }
   .regime-cap { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
   .regime-cap strong { color: var(--text); font-weight: 600; }
   .chip { display: inline-block; font: 600 13px var(--display); padding: 1px 8px; border-radius: 10px;
@@ -127,6 +131,13 @@
   .case-head { font: 700 22px var(--display); margin: 0 0 4px; }
   .case-sub { color: var(--muted); font-size: 14px; margin: 0 0 12px; max-width: 80ch; }
   .howto { font-size: 14px; color: var(--muted); }
+  .scorecard { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; margin: 4px 0 18px; }
+  .scorecard ul { margin: 6px 0 10px; padding-left: 18px; font-size: 14.5px; }
+  .scorecard li { margin: 3px 0; }
+  .bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--latest); vertical-align: middle; margin-right: 6px; }
+  .case-actions { display: flex; gap: 8px; margin: 0 0 10px; }
+  .case-actions button { font-size: 13px; padding: 4px 10px; }
+  .case-list .hidden-toggle { background: none; border: 1px dashed var(--rule); color: var(--muted); font-size: 13px; }
   .req label { display: block; font: 600 13px var(--display); color: var(--muted); margin: 10px 0 4px; }
   .req input { width: 100%; background: var(--ink); color: var(--text); border: 1px solid var(--rule); border-radius: 4px;
                padding: 7px 8px; font: 14px var(--body); color-scheme: dark; }
@@ -162,6 +173,11 @@
   <div class="ribbon" id="ribbon" aria-label="48-hour QPF at the primary pad on the precipitation scale">
     <div class="ribbon-bar" id="ribbon-bar"></div>
     <div class="ribbon-labels" id="ribbon-labels"></div>
+  </div>
+  <div class="site-pick">
+    <label for="rb-site">Site</label>
+    <select id="rb-site" aria-label="Site shown on the precipitation scale"></select>
+    <span class="note" style="margin:0">Changes the scale above, this summary and the Site timeline tab.</span>
   </div>
   <p class="ribbon-cap" id="ribbon-cap">&nbsp;</p>
   <p class="regime-cap" id="regime-cap"></p>
@@ -313,6 +329,7 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   let meta = null, stamp = "";
+  let tlSel = localStorage.getItem("rbSite");
 
   const fmtUTC = (iso, opts) => new Date(iso).toLocaleString("en-US",
     Object.assign({ timeZone: "UTC", weekday: "short", hour: "2-digit", hour12: false }, opts || {})) + "Z";
@@ -418,7 +435,19 @@
     $("ribbon-labels").innerHTML = levels.map(l => `<span>${shown.has(l) ? l : ""}</span>`).join("");
 
     document.querySelectorAll(".tick").forEach(t => t.remove());
-    const site = meta.sites.find(s => s.name === meta.primary_site);
+    let rbSel = localStorage.getItem("rbSite");
+    if (!meta.sites.find(s => s.name === rbSel)) rbSel = meta.primary_site;
+    const site = meta.sites.find(s => s.name === rbSel);
+    const sel = $("rb-site");
+    if (sel.options.length !== meta.sites.length) {
+      sel.innerHTML = meta.sites.map(x => `<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("");
+      sel.onchange = () => {
+        localStorage.setItem("rbSite", sel.value);
+        drawRibbon();
+        if ((meta.timelines || []).find(t => t.site === sel.value)) { tlSel = sel.value; drawTimelines(); }
+      };
+    }
+    sel.value = rbSel;
     const add = (cls, v, html, color) => {
       const t = document.createElement("div");
       t.className = "tick " + cls; t.style.left = ribbonPos(v, levels) + "%";
@@ -431,7 +460,7 @@
     add("", a.total, `<b style="color:${meta.runs[0].color}">${inch(a.total)}</b><i style="background:${meta.runs[0].color}"></i>`);
 
     const tri = (k) => `<span style="color:${meta.runs[k].color}">▲</span>`;
-    let cap = `<strong>${meta.primary_site}</strong> 48-h LPMM <strong>${inch(a.total)}</strong>`;
+    let cap = `<strong>${esc(site.name)}</strong> 48-h LPMM <strong>${inch(a.total)}</strong>`;
     if (site.avrg_total != null) cap += `, <span style="color:var(--avrg)">●</span> AVRG ${inch(site.avrg_total)}`;
     site.runs.slice(1).forEach((r, k) => cap += `, ${tri(k + 1)} ${r.run} run ${inch(r.total)}`);
     cap += `. Within ${meta.nbhd_km} km, up to ${inch(a.nbhd_max)}.`;
@@ -589,9 +618,9 @@
         </div>
         <div class="req">
           <label>Start</label>
-          <div style="display:flex;gap:6px"><input id="rq-sd" type="date" value="${s0.date}" style="flex:1"><select id="rq-sh" class="btn" style="width:92px">${hourOpts(s0.hour)}</select></div>
+          <div style="display:flex;gap:6px"><input id="rq-sd" type="date" value="${s0.date}" style="flex:1"><select id="rq-sh" class="btn" style="width:112px">${hourOpts(s0.hour)}</select></div>
           <label>End</label>
-          <div style="display:flex;gap:6px"><input id="rq-ed" type="date" value="${e0.date}" style="flex:1"><select id="rq-eh" class="btn" style="width:92px">${hourOpts(e0.hour)}</select></div>
+          <div style="display:flex;gap:6px"><input id="rq-ed" type="date" value="${e0.date}" style="flex:1"><select id="rq-eh" class="btn" style="width:112px">${hourOpts(e0.hour)}</select></div>
           <label for="rq-title">Title</label><input id="rq-title" type="text" maxlength="80" placeholder="What happened">
           <p class="note" id="rq-prev" style="margin:10px 0 0"></p>
           <button class="btn" id="rq-go">Request on GitHub</button>
@@ -639,15 +668,21 @@
       $("case-body").innerHTML = `<div class="empty">No look-backs yet. A 24-h case builds automatically after each 12Z cycle, or request one.</div>`;
       return;
     }
-    $("case-list").innerHTML = caseIndex.map(c => `
+    const hidden = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]"));
+    const showHidden = localStorage.getItem("showHidden") === "1";
+    const visible = caseIndex.filter(c => showHidden || !hidden.has(c.id));
+    const nHidden = caseIndex.filter(c => hidden.has(c.id)).length;
+    $("case-list").innerHTML = visible.map(c => `
       <button data-id="${c.id}" aria-current="${c.id === caseSel}">
         <b>${esc(c.title)}</b>
         <small>${c.hours} h to ${dayUTC(c.end)}${c.obs ? `, max ${inch(c.obs.max)} near ${c.obs.near}` : ""}</small>
-      </button>`).join("");
-    $("case-list").querySelectorAll("button").forEach(b => b.onclick = () => showCase(b.dataset.id));
-    if (!caseSel || !caseIndex.find(c => c.id === caseSel)) {
+      </button>`).join("") + (nHidden ? `<button class="hidden-toggle" id="tog-hidden">${showHidden ? "Hide" : "Show"} ${nHidden} hidden</button>` : "");
+    $("case-list").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => showCase(b.dataset.id));
+    if ($("tog-hidden")) $("tog-hidden").onclick = () => { localStorage.setItem("showHidden", showHidden ? "0" : "1"); drawCases(); };
+    if (!visible.length) { $("case-body").innerHTML = `<div class="empty">All cases are hidden on this device.</div>`; return; }
+    if (!caseSel || !visible.find(c => c.id === caseSel)) {
       const want = location.hash.startsWith("#case-") ? location.hash.slice(6) : null;
-      showCase(caseIndex.find(c => c.id === want) ? want : caseIndex[0].id, !!want);
+      showCase(caseIndex.find(c => c.id === want) ? want : visible[0].id, !!want);
     }
   }
   const STAT = { mean: "mean", p75: "P75", max: "max" };
@@ -680,12 +715,33 @@
     const siteRows = Object.keys(c.obs.sites).map(n => `<tr><td>${n}</td><td>${inch(c.obs.sites[n])}</td>${
       cols.map(m => `<td>${inch(shortest[m].sites[n])}</td>`).join("")}</tr>`).join("");
     const refs0 = c.rows.filter(x => x.model === "REFS").sort((a, b) => a.lead - b.lead)[0];
+    const hiddenNow = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]")).has(c.id);
+    const sm = c.summary;
+    const card = sm ? `<div class="scorecard">
+        <h2 style="margin:0">Which model did best</h2>
+        <ul>${sm.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Model</th><th>Run</th><th>Score</th><th class="grp">Placement</th><th>Peak</th><th>Volume</th>
+            <th class="grp">ETS ≥ ${sm.event_threshold}″</th><th>Peak vs obs</th><th>Volume vs obs</th></tr></thead>
+          <tbody>${sm.scores.map(x => { const m = modelInfo(c, x.model); const pc = (v) => v == null ? "—" : Math.round(v * 100) + "%"; return `
+            <tr><td style="color:${m.color}">${esc(x.label)}</td><td class="flat">${dayUTC(x.init).replace(/^\w+, /, "")} · ${x.lead} h</td>
+              <td><span class="bar" style="width:${Math.round(x.score * 60)}px"></span>${x.score.toFixed(2)}</td>
+              <td class="grp">${num(x.sub.placement)}</td><td>${num(x.sub.peak)}</td><td>${num(x.sub.volume)}</td>
+              <td class="grp">${num(x.ets)}</td><td>${pc(x.peak_ratio)}</td><td>${pc(x.bias)}</td></tr>`; }).join("")}</tbody>
+        </table></div>
+        <p class="note" style="margin:8px 0 0">${esc(sm.method)} Event threshold ${sm.event_threshold}″ is the highest that MRMS exceeded over at least 5% of the map.</p>
+      </div>` : "";
     $("case-body").innerHTML = `
+      <div class="case-actions">
+        <button class="btn" id="cs-hide">${hiddenNow ? "Unhide" : "Hide on this device"}</button>
+        ${meta.repo ? `<button class="btn" id="cs-del" title="Opens a GitHub issue; only the repository owner's request is acted on">Delete for everyone…</button>` : ""}
+      </div>
       <h3 class="case-head">${esc(c.title)}</h3>
       <p class="case-sub">${dayUTC(c.start)} to ${dayUTC(c.end)} (${c.hours} h). MRMS max <strong>${inch(c.obs.max)}</strong>
         ${c.obs.near_km < 3 ? "at" : `${c.obs.near_km} km from`} ${c.obs.near}${refs0 && refs0.near_event_max != null ? `; the shortest-lead REFS LPMM reached ${inch(refs0.near_event_max)} within ${c.event_radius_km} km` : ""}.
         ○ marks the observed max. Coarse models are scored against MRMS averaged over their grid box (the 25-km-mean MRMS max was ${inch(c.obs.area_max)}),
         so compare a 0.25° model with that number, not the 1-km peak. Ensemble “max” is the wettest member at each point, an upper envelope rather than a forecast.</p>
+      ${card}
       ${img("dprog.png", "Forecast trend by lead time")}
       ${img("models.png", "Shortest-lead forecasts vs MRMS")}
       ${img("ens.png", "Global ensembles vs MRMS")}
@@ -703,9 +759,19 @@
         </thead>
         <tbody>${siteRows}</tbody></table></div>
       ${c.notes.length ? `<p class="note" style="margin-top:12px">Not available: ${esc(c.notes.join(", "))}.</p>` : ""}`;
+    $("cs-hide").onclick = () => {
+      const h = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]"));
+      h.has(c.id) ? h.delete(c.id) : h.add(c.id);
+      localStorage.setItem("hiddenCases", JSON.stringify([...h]));
+      caseSel = null; drawCases();
+    };
+    if ($("cs-del")) $("cs-del").onclick = () => {
+      if (!confirm(`Delete “${c.title}” for everyone? This opens a GitHub issue; it only goes through if you own the repository.`)) return;
+      const q = new URLSearchParams({ title: `Delete case: ${c.id}`, body: `Remove look-back \`${c.id}\` (${c.title}).` });
+      window.open(`https://github.com/${meta.repo}/issues/new?${q}`, "_blank", "noopener");
+    };
   }
 
-  let tlSel = null;
   function drawTimelines() {
     const t = meta.timelines || [{ site: meta.primary_site, file: "pad_timeline.png" }];
     if (!tlSel || !t.find(x => x.site === tlSel)) tlSel = t[0].site;

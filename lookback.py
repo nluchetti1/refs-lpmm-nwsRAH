@@ -58,7 +58,9 @@ GEFS_MEMBERS = ["gec00"] + [f"gep{k:02d}" for k in range(1, 31)]
 
 MIN_HOURS, MAX_HOURS = 3, 72
 EVENT_RADIUS_KM = 20.0
-CASE_THRESHOLDS = [1.0, 2.0, 4.0]
+CASE_THRESHOLDS = [1.0, 2.0, 4.0, 8.0]
+EVENT_COVERAGE = 0.05            # event threshold = highest one MRMS exceeds over >= 5% of the domain
+SUMMARY_VERSION = 2
 WORKERS = 8
 
 # key: display, color, cycle spacing (h), max fhr, output step (h) as fn of fhr, leads (h before start)
@@ -178,6 +180,7 @@ def _ecmwf_session():
 
 
 ECMWF_SESSION = None
+_ECMWF_DIAG = set()
 
 
 def _coalesce(recs):
@@ -236,6 +239,12 @@ def ecmwf_tp(model, stream, typ, init, f):
                         except Exception:
                             mem = 0
                         out[mem] = (R.crop_values(m, crop) * scale, crop)
+                        if stream not in _ECMWF_DIAG:
+                            _ECMWF_DIAG.add(stream)
+                            v = out[mem][0]
+                            print(f"    [ecmwf diag] {model}/{stream}: paramId {m['paramId']}, units {units!r}, "
+                                  f"step {R._step_range(m)}, packing {m['packingType']}, scale x{scale:g}, "
+                                  f"cropped min/max {np.nanmin(v):.2f}/{np.nanmax(v):.2f} mm")
             finally:
                 os.remove(path)
             return out
@@ -358,8 +367,10 @@ def evaluate(field, lats, lons, raw, event_pt):
     f, o = field[mask], obs[mask]
     dx = R.grid_spacing_km(lats, lons)
     near = R.dist_km(lats, lons, *event_pt) <= max(EVENT_RADIUS_KM, 0.75 * dx)
+    on = np.where(near & np.isfinite(obs), obs, np.nan)
     row = {"domain_max": R.r2(np.where(R.in_view(lats, lons), field, -1).max()),
            "near_event_max": R.r2(field[near].max()) if near.any() else None,
+           "obs_near_max": R.r2(np.nanmax(on)) if np.isfinite(on).any() else None,
            "bias_ratio": R.r2(f.sum() / o.sum()) if o.size and o.sum() > 0.01 * o.size else None,
            "grid_km": round(dx, 1)}
     for t in CASE_THRESHOLDS:
@@ -403,7 +414,8 @@ def plot_grid(panels, out, suptitle, event_pt):
     plt.close(fig)
 
 
-def plot_dprog(rows, obs_max, obs_area_max, out, title):
+def plot_dprog(rows, obs_max, obs_area_max, out, title, event_thr=1.0):
+    ek = f"ets_{event_thr:g}"
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(14, 5.6))
     fig.subplots_adjust(left=0.06, right=0.98, top=0.84, bottom=0.13, wspace=0.2)
     for key, m in MODELS.items():
@@ -417,13 +429,17 @@ def plot_dprog(rows, obs_max, obs_area_max, out, title):
             lab = m["label"] + suffix.replace("p75", "P75")
             a1.plot(x, [r["near_event_max"] for r in rr], ls, marker="o", ms=3.5, color=m["color"], label=lab)
             if suffix in ("", " mean"):
-                a2.plot(x, [r["ets_1"] for r in rr], ls, marker="o", ms=3.5, color=m["color"], label=f"{m['label']} ≥ 1\"")
+                a2.plot(x, [r.get(ek) for r in rr], ls, marker="o", ms=3.5, color=m["color"], label=m["label"] + suffix)
     a1.axhline(obs_max, color=R.TEXT, ls="--", lw=1, label=f"MRMS max {obs_max:.2f}\"")
     a1.axhline(obs_area_max, color=R.MUTED, ls=":", lw=1, label=f"MRMS 25-km-mean max {obs_area_max:.2f}\"")
     a1.set_ylabel(f"Highest forecast within {EVENT_RADIUS_KM:g} km of observed max (in)")
     a1.set_ylim(bottom=0)
     a2.axhline(0, color=R.MUTED, lw=0.6)
-    a2.set_ylabel("Domain ETS ≥ 1\" (each model vs MRMS at its own resolution)")
+    a2.set_ylabel(f"Placement skill: ETS for the ≥ {event_thr:g}\" area")
+    a2.set_ylim(min(-0.1, a2.get_ylim()[0]), max(0.5, a2.get_ylim()[1]))
+    for yv, txt in ((1.0, "1 = forecast and observed areas match exactly"), (0.0, "0 = no better than chance")):
+        if a2.get_ylim()[0] <= yv <= a2.get_ylim()[1]:
+            a2.text(0.99, yv, txt, transform=a2.get_yaxis_transform(), ha="right", va="bottom", fontsize=7.5, color=R.MUTED)
     for a in (a1, a2):
         a.set_xlabel("Lead before window start (h)")
         a.invert_xaxis()
@@ -432,7 +448,7 @@ def plot_dprog(rows, obs_max, obs_area_max, out, title):
         for sp in a.spines.values():
             sp.set_color(R.LINE)
     a1.set_title("Did they get the peak?", fontsize=11, fontweight="bold")
-    a2.set_title("Did they get the placement?", fontsize=11, fontweight="bold")
+    a2.set_title(f"Did they put the ≥ {event_thr:g}\" rain in the right place?", fontsize=11, fontweight="bold")
     fig.suptitle(title, fontsize=14, fontweight="bold", y=0.97)
     fig.savefig(out, dpi=125)
     plt.close(fig)
@@ -484,6 +500,11 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
     obs_max = float(obs[jm, im])
     area = R.sample_mrms(raw, olat[::25, ::25], olon[::25, ::25], half=12)
     obs_area_max = float(np.nanmax(np.where(R.in_view(olat[::25, ::25], olon[::25, ::25]), area, np.nan)))
+
+    vv = obs[view]
+    coverage = {f"{t:g}": round(float((vv >= t).mean()), 4) for t in CASE_THRESHOLDS}
+    event_thr = max([t for t in CASE_THRESHOLDS if coverage[f"{t:g}"] >= EVENT_COVERAGE], default=CASE_THRESHOLDS[0])
+    print(f"[case] MRMS coverage {coverage}; event threshold {event_thr:g}\"")
 
     rows, refs_panels, shortest = [], [], {}
 
@@ -547,7 +568,7 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
                   f"{title}\nGlobal ensembles (member mean, 75th percentile, max) vs MRMS, {win_txt}", event_pt)
     if rows:
         plot_dprog(rows, obs_max, obs_area_max, os.path.join(out_dir, "dprog.png"),
-                   f"{title}: forecast trend as the event approached")
+                   f"{title}: forecast trend as the event approached", event_thr)
 
     obs_sites = {n: R.r2(R.sample_mrms(raw, np.array([[la]]), np.array([[lo]]), half=1)[0, 0])
                  for n, (la, lo, _) in R.SITES.items()}
@@ -556,15 +577,112 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
         "id": cid, "title": title, "auto": auto, "hours": hours, "requested_by": requested_by,
         "start": start.isoformat(), "end": end.isoformat(), "built": R.utcnow().isoformat(timespec="seconds"),
         "obs": {"max": R.r2(obs_max), "area_max": R.r2(obs_area_max), "lat": round(event_pt[0], 3),
-                "lon": round(event_pt[1], 3), "near": site_name, "near_km": site_km, "sites": obs_sites},
+                "lon": round(event_pt[1], 3), "near": site_name, "near_km": site_km, "sites": obs_sites,
+                "coverage": coverage},
+        "event_threshold": event_thr,
         "models": {k: {"label": v["label"], "color": v["color"]} for k, v in MODELS.items()},
         "thresholds": CASE_THRESHOLDS, "event_radius_km": EVENT_RADIUS_KM,
         "rows": rows, "notes": notes,
         "images": [f for f in ("dprog.png", "models.png", "ens.png", "refs.png") if os.path.exists(os.path.join(out_dir, f))],
     }
+    case["summary"] = summarize(case)
     R.save_json(os.path.join(out_dir, "case.json"), case, indent=1)
     print(f"[case] {cid}: {len(rows)} forecast rows, MRMS max {obs_max:.2f}\" near {site_name}")
     return out_dir
+
+
+def summarize(case):
+    """Rank models for one case on three 0-1 sub-scores, averaged:
+      placement = ETS at the event threshold / 0.5, capped at 1 (0.5 is an excellent ETS for rain)
+      peak      = exp(-|ln(forecast near-max / observed near-max at the model's resolution)|)
+      volume    = exp(-|ln(domain bias ratio)|)
+    Each uses the model's shortest-lead run. Ensemble maxima are excluded from the ranking
+    (an envelope, not a forecast) but count toward "earliest signal"."""
+    thr = case.get("event_threshold") or (2.0 if case.get("hours", 24) >= 24 else 1.0)
+    ek = f"ets_{thr:g}"
+    if not any(ek in r for r in case["rows"]):
+        thr = max(t for t in (1.0, 2.0, 4.0) if any(f"ets_{t:g}" in r for r in case["rows"])); ek = f"ets_{thr:g}"
+    labels = {k: v["label"] for k, v in case.get("models", {}).items()}
+    def label(name):
+        k, _, st = name.partition("_")
+        return labels.get(k, k) + ({"mean": " mean", "p75": " P75", "max": " max"}.get(st, ""))
+    def obs_peak(r):
+        if r.get("obs_near_max") is not None:
+            return r["obs_near_max"]
+        return case["obs"]["area_max"] if (r.get("grid_km") or 3) > 10 else case["obs"]["max"]
+    by = {}
+    for r in case["rows"]:
+        by.setdefault(r["model"], []).append(r)
+    scores, signals = [], []
+    for name, rr in by.items():
+        rr = sorted(rr, key=lambda r: r["lead"])
+        for r in reversed(rr):                   # longest lead first: how far ahead did it see it?
+            op = obs_peak(r)
+            if r.get("near_event_max") is not None and op:
+                if r["near_event_max"] / op >= 0.5:
+                    signals.append((r["lead"], name)); break
+        if name.endswith("_max"):
+            continue
+        r0 = rr[0]
+        op = obs_peak(r0)
+        ratio = (r0["near_event_max"] / op) if (r0.get("near_event_max") is not None and op) else None
+        ets = r0.get(ek)
+        bias = r0.get("bias_ratio")
+        sub = {"placement": None if ets is None else max(0.0, min(1.0, ets / 0.5)),
+               "peak": None if not ratio else float(np.exp(-abs(np.log(max(ratio, 1e-3))))),
+               "volume": None if not bias else float(np.exp(-abs(np.log(max(bias, 1e-3)))))}
+        vals = [v for v in sub.values() if v is not None]
+        if not vals:
+            continue
+        scores.append({"model": name, "label": label(name), "lead": r0["lead"], "init": r0["init"],
+                       "score": round(float(np.mean(vals)), 2), "ets": ets, "peak_ratio": None if ratio is None else round(ratio, 2),
+                       "near_max": r0.get("near_event_max"), "obs_peak": op, "bias": bias,
+                       "sub": {k: (None if v is None else round(v, 2)) for k, v in sub.items()}})
+    scores.sort(key=lambda x: -x["score"])
+    signals.sort(key=lambda x: -x[0])
+    lines = []
+    if scores:
+        b = scores[0]
+        lines.append(f"Best overall: {b['label']} (score {b['score']:.2f}).")
+        p = max([x for x in scores if x["ets"] is not None], key=lambda x: x["ets"], default=None)
+        if p:
+            lines.append(f"Best placement of the ≥ {thr:g}″ area: {p['label']} (ETS {p['ets']:.2f}).")
+        k = min([x for x in scores if x["peak_ratio"]], key=lambda x: abs(np.log(x["peak_ratio"])), default=None)
+        if k:
+            lines.append(f"Closest on the peak: {k['label']}, {k['near_max']:.2f}″ vs {k['obs_peak']:.2f}″ observed at its resolution "
+                         f"({k['peak_ratio'] * 100:.0f}%).")
+        dry = [x for x in scores if x["bias"] is not None and x["bias"] < 0.5]
+        if dry:
+            lines.append("Far too dry overall (under half the observed rain volume): "
+                         + ", ".join(f"{x['label']} {x['bias'] * 100:.0f}%" for x in sorted(dry, key=lambda x: x["bias"])) + ".")
+    if signals:
+        lead, name = signals[0]
+        lines.append(f"Earliest signal: {label(name)} reached half the observed peak {lead} h before the window started."
+                     if lead else f"Earliest signal: only at 0-h lead ({label(name)}); no model saw it coming beforehand.")
+    else:
+        lines.append("No model reached half the observed peak at any lead.")
+    return {"version": SUMMARY_VERSION, "event_threshold": thr, "lines": lines, "scores": scores,
+            "method": "Score = mean of placement (ETS at the event threshold ÷ 0.5, capped at 1), peak "
+                      "(e^-|ln ratio| of forecast to observed near-max at the model's resolution) and volume "
+                      "(e^-|ln bias|), each from the model's shortest-lead run."}
+
+
+def refresh_summaries():
+    """Add or update summaries on stored cases (no downloads), so older cases get the scorecard too."""
+    for cj in glob.glob(os.path.join(R.CASES_DIR, "*", "case.json")):
+        c = R.load_json(cj, None)
+        if c and (c.get("summary") or {}).get("version") != SUMMARY_VERSION:
+            c["summary"] = summarize(c)
+            R.save_json(cj, c, indent=1)
+
+
+def delete_case(case_id):
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", case_id or ""):
+        raise ValueError("bad case id")
+    d = os.path.join(R.CASES_DIR, case_id)
+    if not os.path.exists(os.path.join(d, "case.json")):
+        raise FileNotFoundError(f"no case {case_id}")
+    shutil.rmtree(d)
 
 
 def prune_auto(keep):
@@ -584,6 +702,7 @@ def republish():
         shutil.copy(R.INDEX_SRC, os.path.join(R.OUT_DIR, "index.html"))
     meta_p = os.path.join(R.OUT_DIR, "meta.json")
     meta = R.load_json(meta_p, {})
+    refresh_summaries()
     meta.setdefault("products", {})["cases"] = R.publish_cases(R.OUT_DIR) > 0
     R.save_json(meta_p, meta, indent=1)
     return True

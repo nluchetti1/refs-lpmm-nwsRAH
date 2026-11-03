@@ -1590,6 +1590,11 @@ def main():
         optional("auto look-back", lookback.build_case, end=latest, hours=24,
                  title=f"24 h ending 12Z {latest:%a %d %b}", auto=True)
         optional("prune auto cases", lookback.prune_auto, AUTO_CASES_KEPT)
+    try:
+        import lookback
+        lookback.refresh_summaries()
+    except Exception as e:
+        print(f"[warn] summary refresh: {e}")
     products["cases"] = (optional("publish cases", publish_cases, OUT_DIR) or 0) > 0
 
     meta = build_meta(runs, avrg, eas, ffri_max, valid_start, valid_end, frames, eas_frames,

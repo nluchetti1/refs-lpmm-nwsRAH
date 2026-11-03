@@ -37,9 +37,25 @@ def reply(text, code):
     sys.exit(code)
 
 
+def delete_request(title, author):
+    owner = os.environ.get("REPO_OWNER", "")
+    cid = title.split(":", 1)[1].strip().split()[0] if ":" in title else ""
+    if author != owner:
+        reply(f"Only the repository owner (@{owner}) can delete cases. Use **Hide** on the site to hide it just for you.", 2)
+    try:
+        L.delete_case(cid)
+    except Exception as e:
+        reply(f"Couldn't delete `{cid}`: {e}", 2)
+    L.republish()
+    reply(f"Deleted case `{cid}`. The site updates within a minute or two.", 0)
+
+
 def main():
     body = os.environ.get("ISSUE_BODY", "")
     author = os.environ.get("ISSUE_AUTHOR", "unknown")
+    title = os.environ.get("ISSUE_TITLE", "")
+    if title.startswith("Delete case:"):
+        delete_request(title, author)
     try:
         start = L.parse_time(field(body, "Window start (UTC)"))
         end = L.parse_time(field(body, "Window end (UTC)"))
