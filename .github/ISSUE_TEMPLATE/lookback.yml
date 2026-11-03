@@ -1,0 +1,34 @@
+name: Look-back request
+description: Compare REFS, HRRR, RRFS, GFS, ECMWF and the global ensembles against MRMS for a past window.
+title: "Look-back: "
+labels: ["lookback-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you came from the site's **Request on GitHub** button, the times below are already filled in. Just press **Create**.
+
+        They're in **UTC** (`YYYYMMDDHH`), which is what the builder reads: `2026110112` = 12Z Nov 1 = 7 AM EST.
+        Window length 3–72 h; it must end at least ~70 minutes ago.
+        REFS is archived from 13 Aug 2026. The case builds in about 10 minutes and a link is posted here.
+  - type: input
+    id: start
+    attributes:
+      label: Window start (UTC)
+      placeholder: "2026110112"
+    validations:
+      required: true
+  - type: input
+    id: end
+    attributes:
+      label: Window end (UTC)
+      placeholder: "2026110312"
+    validations:
+      required: true
+  - type: input
+    id: case_title
+    attributes:
+      label: Title
+      placeholder: "Brevard flooding"
+    validations:
+      required: false
