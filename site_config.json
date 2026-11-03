@@ -1,0 +1,241 @@
+{
+  "branding": {
+    "title": "Central NC REFS QPF",
+    "subtitle": "48-h ensemble QPF for the NWS Raleigh forecast area",
+    "area": "the NWS Raleigh CWA"
+  },
+  "extent": [
+    -81.2,
+    -76.9,
+    34.2,
+    37.0
+  ],
+  "thresholds": [
+    1.0,
+    2.0,
+    4.0,
+    6.0
+  ],
+  "iem_stations": {
+    "network": "NC_ASOS",
+    "wfo": "RAH",
+    "major": [
+      "RDU",
+      "GSO",
+      "INT",
+      "FAY",
+      "RWI"
+    ]
+  },
+  "fallback_stations": [
+    {
+      "id": "RDU",
+      "sname": "Raleigh-Durham Intl",
+      "lat": 35.8776,
+      "lon": -78.7875,
+      "kind": "asos"
+    },
+    {
+      "id": "GSO",
+      "sname": "Greensboro",
+      "lat": 36.0978,
+      "lon": -79.9437,
+      "kind": "asos"
+    },
+    {
+      "id": "INT",
+      "sname": "Winston-Salem",
+      "lat": 36.1337,
+      "lon": -80.222,
+      "kind": "asos"
+    },
+    {
+      "id": "FAY",
+      "sname": "Fayetteville",
+      "lat": 34.9912,
+      "lon": -78.8803,
+      "kind": "asos"
+    },
+    {
+      "id": "RWI",
+      "sname": "Rocky Mount-Wilson",
+      "lat": 35.8563,
+      "lon": -77.8919,
+      "kind": "asos"
+    },
+    {
+      "id": "POB",
+      "sname": "Pope AAF",
+      "lat": 35.1709,
+      "lon": -79.0145,
+      "kind": "asos"
+    },
+    {
+      "id": "FBG",
+      "sname": "Simmons AAF",
+      "lat": 35.1318,
+      "lon": -78.9367,
+      "kind": "asos"
+    },
+    {
+      "id": "SOP",
+      "sname": "Pinehurst-Southern Pines",
+      "lat": 35.2374,
+      "lon": -79.3912,
+      "kind": "asos"
+    },
+    {
+      "id": "TTA",
+      "sname": "Sanford",
+      "lat": 35.5823,
+      "lon": -79.1012,
+      "kind": "awos"
+    },
+    {
+      "id": "HRJ",
+      "sname": "Erwin Harnett",
+      "lat": 35.3793,
+      "lon": -78.733,
+      "kind": "awos"
+    },
+    {
+      "id": "JNX",
+      "sname": "Smithfield Johnston",
+      "lat": 35.541,
+      "lon": -78.3903,
+      "kind": "awos"
+    },
+    {
+      "id": "GWW",
+      "sname": "Goldsboro-Wayne",
+      "lat": 35.4605,
+      "lon": -77.965,
+      "kind": "awos"
+    },
+    {
+      "id": "GSB",
+      "sname": "Seymour Johnson AFB",
+      "lat": 35.3394,
+      "lon": -77.9606,
+      "kind": "asos"
+    },
+    {
+      "id": "CTZ",
+      "sname": "Clinton",
+      "lat": 34.9757,
+      "lon": -78.3646,
+      "kind": "awos"
+    },
+    {
+      "id": "LHZ",
+      "sname": "Louisburg",
+      "lat": 36.0236,
+      "lon": -78.3303,
+      "kind": "awos"
+    },
+    {
+      "id": "HNZ",
+      "sname": "Henderson-Oxford",
+      "lat": 36.3614,
+      "lon": -78.5292,
+      "kind": "awos"
+    },
+    {
+      "id": "TDF",
+      "sname": "Roxboro",
+      "lat": 36.2849,
+      "lon": -78.9842,
+      "kind": "awos"
+    },
+    {
+      "id": "BUY",
+      "sname": "Burlington",
+      "lat": 36.0485,
+      "lon": -79.4749,
+      "kind": "awos"
+    },
+    {
+      "id": "HBI",
+      "sname": "Asheboro",
+      "lat": 35.6546,
+      "lon": -79.8947,
+      "kind": "awos"
+    },
+    {
+      "id": "EXX",
+      "sname": "Lexington",
+      "lat": 35.7811,
+      "lon": -80.3038,
+      "kind": "awos"
+    },
+    {
+      "id": "VUJ",
+      "sname": "Albemarle",
+      "lat": 35.4167,
+      "lon": -80.1508,
+      "kind": "awos"
+    },
+    {
+      "id": "AFP",
+      "sname": "Wadesboro",
+      "lat": 34.9864,
+      "lon": -80.077,
+      "kind": "awos"
+    },
+    {
+      "id": "RCZ",
+      "sname": "Rockingham",
+      "lat": 34.8913,
+      "lon": -79.7596,
+      "kind": "awos"
+    },
+    {
+      "id": "MEB",
+      "sname": "Maxton-Laurinburg",
+      "lat": 34.7914,
+      "lon": -79.3659,
+      "kind": "awos"
+    },
+    {
+      "id": "ETC",
+      "sname": "Tarboro",
+      "lat": 35.937,
+      "lon": -77.5467,
+      "kind": "awos"
+    },
+    {
+      "id": "IXA",
+      "sname": "Roanoke Rapids",
+      "lat": 36.3297,
+      "lon": -77.635,
+      "kind": "awos"
+    }
+  ],
+  "primary": "RDU",
+  "timelines": "all",
+  "map_labels": [
+    "RDU",
+    "GSO",
+    "INT",
+    "FAY",
+    "RWI",
+    "SOP",
+    "GWW",
+    "HNZ"
+  ],
+  "regime": {
+    "name": "GSO",
+    "point": [
+      36.0978,
+      -79.9437
+    ],
+    "raob_stations": [
+      "KGSO",
+      "GSO"
+    ],
+    "raob_hours": [
+      12,
+      0
+    ]
+  }
+}
