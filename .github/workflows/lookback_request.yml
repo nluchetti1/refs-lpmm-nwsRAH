@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   case:
-    if: contains(github.event.issue.labels.*.name, 'lookback-request') || startsWith(github.event.issue.title, 'Look-back:')
+    if: contains(github.event.issue.labels.*.name, 'lookback-request') || startsWith(github.event.issue.title, 'Look-back:') || startsWith(github.event.issue.title, 'Delete case:')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
@@ -21,7 +21,7 @@ jobs:
       - name: Acknowledge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh issue comment ${{ github.event.issue.number }} -R ${{ github.repository }} -b "Building this look-back now (about 10 min)."
+        run: gh issue comment ${{ github.event.issue.number }} -R ${{ github.repository }} -b "On it (look-backs take about 10–15 min; deletions about 2)."
 
       - uses: actions/checkout@v4
 
@@ -53,6 +53,8 @@ jobs:
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
           set +e
           python request_case.py
