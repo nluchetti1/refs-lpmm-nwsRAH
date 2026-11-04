@@ -60,7 +60,8 @@ MIN_HOURS, MAX_HOURS = 3, 72
 EVENT_RADIUS_KM = 20.0
 CASE_THRESHOLDS = [1.0, 2.0, 4.0, 8.0]
 EVENT_COVERAGE = 0.05            # event threshold = highest one MRMS exceeds over >= 5% of the domain
-SUMMARY_VERSION = 2
+SUMMARY_VERSION = 3
+ECMWF_READER_VERSION = 2          # 2 = step-range aware (fixes AIFS 6-h buckets)
 WORKERS = 8
 
 # key: display, color, cycle spacing (h), max fhr, output step (h) as fn of fhr, leads (h before start)
@@ -238,7 +239,7 @@ def ecmwf_tp(model, stream, typ, init, f):
                             mem = int(m["perturbationNumber"])
                         except Exception:
                             mem = 0
-                        out[mem] = (R.crop_values(m, crop) * scale, crop)
+                        out[mem] = (R.crop_values(m, crop) * scale, crop, R._step_range(m))
                         if stream not in _ECMWF_DIAG:
                             _ECMWF_DIAG.add(stream)
                             v = out[mem][0]
@@ -254,20 +255,47 @@ def ecmwf_tp(model, stream, typ, init, f):
     raise FileNotFoundError("all ECMWF mirrors failed: " + "; ".join(errs))
 
 
+def ecmwf_window(model, stream, typ, init, f0, f1):
+    """{member: window total (mm)} and crop, using each record's own step range.
+
+    IFS oper/ENS store tp accumulated from the start of the run; AIFS (6-hourly output)
+    may store it per 6-h output interval. Treating a bucket as a run total takes only the
+    last bucket of the window, so the record's (start, end) step decides which is used."""
+    b = ecmwf_tp(model, stream, typ, init, f1)
+    first = b[sorted(b)[0]]
+    a0, b0 = first[2]
+    crop = first[1]
+    if a0 == 0:                                            # run total: difference of two files
+        if f0 == 0:
+            return {k: v[0] for k, v in b.items()}, crop, "run total"
+        a = ecmwf_tp(model, stream, typ, init, f0)
+        if a[sorted(a)[0]][2][0] != 0:
+            raise ValueError(f"f{f0} is not a run total: {a[sorted(a)[0]][2]}")
+        mems = [k for k in b if k in a]
+        return {k: b[k][0] - a[k][0] for k in mems}, crop, "run total"
+    bucket = b0 - a0                                       # buckets: sum every interval in the window
+    if (f1 - f0) % bucket or f0 % bucket:
+        raise ValueError(f"{bucket}-h buckets don't tile f{f0}-f{f1}")
+    tot = {k: v[0].copy() for k, v in b.items()}
+    for f in range(f0 + bucket, f1, bucket):
+        part = ecmwf_tp(model, stream, typ, init, f)
+        if part[sorted(part)[0]][2] != (f - bucket, f):
+            raise ValueError(f"unexpected step at f{f}: {part[sorted(part)[0]][2]}")
+        tot = {k: tot[k] + part[k][0] for k in tot if k in part}
+    return tot, crop, f"{bucket}-h buckets x{(f1 - f0) // bucket}"
+
+
 def ecmwf_det(model, init, f0, f1):
-    b = ecmwf_tp(model, "oper", "fc", init, f1)
-    a = ecmwf_tp(model, "oper", "fc", init, f0) if f0 > 0 else None
-    vb, crop = b[sorted(b)[0]]
-    va = a[sorted(a)[0]][0] if a else 0.0
-    return np.clip((vb - va) * R.MM_TO_IN, 0, None), crop["lats"], crop["lons"]
+    tot, crop, how = ecmwf_window(model, "oper", "fc", init, f0, f1)
+    print(f"    ECMWF {model} {init:%d/%HZ} f{f0}-f{f1}: {how}")
+    v = tot[sorted(tot)[0]]
+    return np.clip(v * R.MM_TO_IN, 0, None), crop["lats"], crop["lons"]
 
 
 def ecmwf_ens(init, f0, f1):
-    b = ecmwf_tp("ifs", "enfo", "ef", init, f1)
-    a = ecmwf_tp("ifs", "enfo", "ef", init, f0) if f0 > 0 else {}
-    mems = sorted(k for k in b if (f0 == 0 or k in a))
-    crop = b[mems[0]][1]
-    stack = np.stack([b[k][0] - (a[k][0] if f0 > 0 else 0.0) for k in mems]) * R.MM_TO_IN
+    tot, crop, how = ecmwf_window("ifs", "enfo", "ef", init, f0, f1)
+    print(f"    ECMWF ENS {init:%d/%HZ} f{f0}-f{f1}: {how}, {len(tot)} members")
+    stack = np.stack([tot[k] for k in sorted(tot)]) * R.MM_TO_IN
     return np.clip(stack, 0, None), crop["lats"], crop["lons"]
 
 
@@ -474,7 +502,7 @@ def validate_window(start, end):
     return hours
 
 
-def build_case(start=None, end=None, hours=None, title=None, auto=False, requested_by=None):
+def build_case(start=None, end=None, hours=None, title=None, auto=False, requested_by=None, rebuild=False):
     R.init_sites()
     if start is None:
         start = end - timedelta(hours=hours)
@@ -483,8 +511,14 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
     cid = case_id_for(start, end, auto)
     out_dir = os.path.join(R.CASES_DIR, cid)
     if os.path.exists(os.path.join(out_dir, "case.json")):
-        print(f"[case] {cid} already built")
-        return out_dir
+        if not rebuild:
+            print(f"[case] {cid} already built (use --rebuild to redo it)")
+            return out_dir
+        old = R.load_json(os.path.join(out_dir, "case.json"), {})
+        title = title or old.get("title")
+        requested_by = requested_by or old.get("requested_by")
+        shutil.rmtree(out_dir)
+        print(f"[case] {cid}: rebuilding")
     os.makedirs(out_dir, exist_ok=True)
     title = title or f"{hours} h ending {end:%HZ %a %d %b %Y}"
     print(f"[case] {cid}: {start:%Y%m%d %HZ} to {end:%Y%m%d %HZ} ({hours} h)")
@@ -585,6 +619,7 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
         "rows": rows, "notes": notes,
         "images": [f for f in ("dprog.png", "models.png", "ens.png", "refs.png") if os.path.exists(os.path.join(out_dir, f))],
     }
+    case["ecmwf_reader"] = ECMWF_READER_VERSION
     case["summary"] = summarize(case)
     R.save_json(os.path.join(out_dir, "case.json"), case, indent=1)
     print(f"[case] {cid}: {len(rows)} forecast rows, MRMS max {obs_max:.2f}\" near {site_name}")
@@ -722,9 +757,10 @@ if __name__ == "__main__":
     ap.add_argument("--hours", type=int, help="alternative to --start")
     ap.add_argument("--title", default="")
     ap.add_argument("--no-publish", action="store_true")
+    ap.add_argument("--rebuild", action="store_true", help="redo an existing case (keeps its title)")
     a = ap.parse_args()
     end = parse_time(a.end)
     start = parse_time(a.start) if a.start else end - timedelta(hours=a.hours or 24)
-    build_case(start=start, end=end, title=a.title or None)
+    build_case(start=start, end=end, title=a.title or None, rebuild=a.rebuild)
     if not a.no_publish:
         republish()
