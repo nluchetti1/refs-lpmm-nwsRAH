@@ -10,9 +10,13 @@ on:
         description: 'Window end, YYYYMMDDHH UTC (3-72 h after start)'
         required: true
       title:
-        description: 'Title shown on the site'
+        description: 'Title shown on the site (leave blank when rebuilding to keep the old one)'
         required: false
         default: ''
+      rebuild:
+        description: 'Rebuild if this window already exists'
+        type: boolean
+        default: false
 
 concurrency:
   group: refs-qpf
@@ -59,7 +63,8 @@ jobs:
           START: ${{ inputs.start }}
           END: ${{ inputs.end }}
           TITLE: ${{ inputs.title }}
-        run: python lookback.py --start "$START" --end "$END" --title "$TITLE"
+          REBUILD: ${{ inputs.rebuild }}
+        run: python lookback.py --start "$START" --end "$END" --title "$TITLE" $([ "$REBUILD" = "true" ] && echo --rebuild)
 
       - name: Prepare data branch
         run: rm -rf data/.git
