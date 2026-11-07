@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REFS QPF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1a24; --panel: #152331; --rule: #263848; --text: #e6edf2; --muted: #8ea3b3;
+    --latest: #4fd1e8; --run6: #f0b429; --run12: #e0607e; --avrg: #b59cf5;
+    --good: #5fd38d; --warn: #f0b429; --bad: #ef6b6b;
+    --display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+    --body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body { margin: 0; background: var(--ink); color: var(--text); font: 16px/1.5 var(--body);
+         padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+  a { color: var(--latest); }
+  :focus-visible { outline: 2px solid var(--latest); outline-offset: 2px; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 28px 24px 48px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 32px; }
+  h1 { font: 700 clamp(28px, 4vw, 44px)/1.05 var(--display); letter-spacing: -0.01em; margin: 0; }
+  .sub { color: var(--muted); margin: 6px 0 0; font-size: 15px; }
+  .status { display: flex; align-items: center; gap: 10px; font: 600 15px var(--display); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex: none; }
+  .status[data-s="fresh"] .dot { background: var(--good); box-shadow: 0 0 0 4px rgba(95,211,141,.15); }
+  .status[data-s="aging"] .dot { background: var(--warn); }
+  .status[data-s="stale"] .dot { background: var(--bad); }
+  .status small { display: block; font: 400 13px var(--body); color: var(--muted); }
+
+  /* Precip scale with the pad's 48-h totals marked on it */
+  .ribbon { margin: 28px 0 8px; position: relative; padding-top: 34px; }
+  .ribbon-bar { display: grid; height: 14px; border-radius: 3px; overflow: hidden; }
+  .ribbon-labels { display: grid; margin-top: 10px; font: 500 12px var(--display); color: var(--muted); }
+  .ribbon-labels span { transform: translateX(-50%); width: max-content; }
+  .tick { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column;
+          align-items: center; pointer-events: none; transition: left .6s ease; }
+  .tick b { font: 700 15px var(--display); white-space: nowrap; }
+  .tick i { width: 2px; height: 30px; margin-top: 2px; }
+  .tick.prev { top: 34px; }
+  .tick.prev i { width: 0; height: 0; margin-top: 15px; border: 6px solid transparent; border-top: 0;
+                 border-bottom: 8px solid var(--c); background: none; }
+  .tick.avrg { top: 34px; }
+  .tick.avrg i { width: 8px; height: 8px; margin-top: 15px; border-radius: 50%; background: var(--avrg); }
+  .ribbon-cap { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+  .ribbon-cap strong { color: var(--text); font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; margin-top: 28px; }
+  @media (max-width: 1000px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  main, aside { min-width: 0; }
+  .grid.wide { grid-template-columns: minmax(0, 1fr); }
+  .grid.wide aside { display: none; }
+
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: thin; }
+  .tabs button { background: none; border: 0; color: var(--muted); cursor: pointer; font: 600 16px var(--display);
+                 padding: 10px 12px; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--latest); }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[hidden] { display: none; }
+
+  .view { padding-top: 16px; }
+  .view[hidden] { display: none; }
+  .note { color: var(--muted); font-size: 14px; max-width: 72ch; margin: 0 0 12px; }
+  .figure img { display: block; width: 100%; height: auto; cursor: zoom-in; border-radius: 4px; }
+  .figure + .figure { margin-top: 16px; }
+  .fig-actions { display: flex; justify-content: flex-end; gap: 16px; margin-top: 8px; font-size: 14px; }
+
+  .loop-wrap { max-width: 760px; }
+  .controls { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { background: var(--panel); color: var(--text); border: 1px solid var(--rule); font: 600 14px var(--display);
+         padding: 6px 12px; border-radius: 4px; cursor: pointer; min-width: 40px; }
+  .btn:hover { border-color: var(--latest); }
+  .controls input[type=range] { flex: 1; min-width: 160px; accent-color: var(--latest); }
+  .frame-label { font: 600 14px var(--display); color: var(--muted); min-width: 150px; text-align: right; }
+  .kbd { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+  .seg button { background: none; border: 0; color: var(--muted); font: 600 14px var(--display); padding: 6px 14px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--rule); }
+  .seg button[aria-pressed="true"] { background: var(--panel); color: var(--text); box-shadow: inset 0 -2px 0 var(--latest); }
+
+  aside section, .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 16px; }
+  aside section { margin-bottom: 16px; }
+  h2 { font: 700 18px var(--display); margin: 0 0 10px; }
+  .legend-runs { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+  .legend-runs span { display: flex; align-items: center; gap: 8px; }
+  .legend-runs i { width: 14px; height: 4px; border-radius: 2px; flex: none; }
+  .facts { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
+  .facts strong { color: var(--text); font-weight: 600; }
+  .links { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+  .vstat { display: grid; grid-template-columns: auto 1fr 1fr; gap: 4px 14px; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .vstat .h { font: 600 13px var(--display); color: var(--muted); }
+  .vstat .l { color: var(--latest); } .vstat .a { color: var(--avrg); }
+
+  .sites { margin-top: 24px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th { text-align: right; font: 600 13px var(--display); color: var(--muted); padding: 4px 8px 6px;
+       border-bottom: 1px solid var(--rule); white-space: nowrap; vertical-align: bottom; }
+  th:first-child, td:first-child { text-align: left; }
+  th.grp { border-left: 1px solid var(--rule); }
+  td { text-align: right; padding: 7px 8px; border-bottom: 1px solid #1d2e3d; white-space: nowrap; }
+  td.grp { border-left: 1px solid var(--rule); }
+  tr.pad td:first-child { color: var(--text); font-weight: 600; }
+  tr:not(.pad) td:first-child { color: var(--muted); }
+  .up { color: var(--run12); } .down { color: var(--latest); } .flat { color: var(--muted); }
+  .p-hi { color: var(--run12); font-weight: 600; } .p-mid { color: var(--run6); } .p-lo { color: var(--muted); }
+
+  .site-pick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0 0; }
+  .site-pick label { font: 700 15px var(--display); color: var(--text); }
+  .site-pick select { background: var(--panel); color: var(--text); border: 1px solid var(--latest); border-radius: 4px;
+                      font: 600 15px var(--display); padding: 5px 30px 5px 10px; min-width: 220px; cursor: pointer; color-scheme: dark; }
+  .regime-cap { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+  .regime-cap strong { color: var(--text); font-weight: 600; }
+  .chip { display: inline-block; font: 600 13px var(--display); padding: 1px 8px; border-radius: 10px;
+          border: 1px solid var(--rule); color: var(--text); margin-right: 6px; }
+  .cases { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 800px) { .cases { grid-template-columns: minmax(0, 1fr); } }
+  .cases > * { min-width: 0; }
+  .case-list { display: flex; flex-direction: column; gap: 6px; max-height: 70vh; overflow-y: auto; }
+  .case-list button { text-align: left; background: var(--panel); border: 1px solid var(--rule); color: var(--text);
+                      border-radius: 6px; padding: 10px 12px; cursor: pointer; font: inherit; }
+  .case-list button:hover { border-color: var(--latest); }
+  .case-list button[aria-current="true"] { border-color: var(--latest); box-shadow: inset 3px 0 0 var(--latest); }
+  .case-list b { display: block; font: 600 15px var(--display); }
+  .case-list small { color: var(--muted); font-size: 13px; }
+  .case-head { font: 700 22px var(--display); margin: 0 0 4px; }
+  .case-sub { color: var(--muted); font-size: 14px; margin: 0 0 12px; max-width: 80ch; }
+  .howto { font-size: 14px; color: var(--muted); }
+  .scorecard { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; margin: 4px 0 18px; }
+  .scorecard ul { margin: 6px 0 10px; padding-left: 18px; font-size: 14.5px; }
+  .scorecard li { margin: 3px 0; }
+  .bar { display: inline-block; height: 8px; border-radius: 4px; background: var(--latest); vertical-align: middle; margin-right: 6px; }
+  .case-actions { display: flex; gap: 8px; margin: 0 0 10px; }
+  .case-actions button { font-size: 13px; padding: 4px 10px; }
+  .case-list .hidden-toggle { background: none; border: 1px dashed var(--rule); color: var(--muted); font-size: 13px; }
+  .req label { display: block; font: 600 13px var(--display); color: var(--muted); margin: 10px 0 4px; }
+  .req input { width: 100%; background: var(--ink); color: var(--text); border: 1px solid var(--rule); border-radius: 4px;
+               padding: 7px 8px; font: 14px var(--body); color-scheme: dark; }
+  .req .btn { margin-top: 12px; width: 100%; }
+  .req .err { color: var(--bad); font-size: 13px; min-height: 1.2em; margin-top: 6px; }
+  .howto code { color: var(--text); background: var(--ink); padding: 1px 5px; border-radius: 3px; }
+  .empty { border: 1px dashed var(--rule); border-radius: 6px; padding: 24px; color: var(--muted); }
+
+  #lightbox { position: fixed; inset: 0; background: rgba(6,11,16,.94); display: none; align-items: center;
+              justify-content: center; z-index: 50; cursor: zoom-out; }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 96vw; max-height: 94vh; }
+
+  footer { margin-top: 32px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--rule); padding-top: 16px; max-width: 90ch; }
+  @media (max-width: 600px) { .wrap { padding: 20px 14px 40px; } .frame-label { min-width: 0; text-align: left; } }
+  @media (prefers-reduced-motion: reduce) { .tick { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1 id="h-title">REFS QPF</h1>
+      <p class="sub" id="sub">48-h ensemble QPF</p>
+    </div>
+    <div class="status" id="status" data-s="unknown" role="status">
+      <span class="dot"></span>
+      <div><span id="status-text">Loading</span><small id="status-detail">&nbsp;</small></div>
+    </div>
+  </header>
+
+  <div class="ribbon" id="ribbon" aria-label="48-hour QPF at the primary pad on the precipitation scale">
+    <div class="ribbon-bar" id="ribbon-bar"></div>
+    <div class="ribbon-labels" id="ribbon-labels"></div>
+  </div>
+  <div class="site-pick">
+    <label for="rb-site">Site</label>
+    <select id="rb-site" aria-label="Site shown on the precipitation scale"></select>
+    <span class="note" style="margin:0">Changes the scale above, this summary and the Site timeline tab.</span>
+  </div>
+  <p class="ribbon-cap" id="ribbon-cap">&nbsp;</p>
+  <p class="regime-cap" id="regime-cap"></p>
+
+  <div class="grid">
+    <main>
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true"  aria-controls="v-loop"   id="t-loop">6-h loop</button>
+        <button role="tab" aria-selected="false" aria-controls="v-prob"   id="t-prob" data-needs="eas">Probability</button>
+        <button role="tab" aria-selected="false" aria-controls="v-trend"  id="t-trend">48-h trend</button>
+        <button role="tab" aria-selected="false" aria-controls="v-thresh" id="t-thresh">Thresholds</button>
+        <button role="tab" aria-selected="false" aria-controls="v-avrg"   id="t-avrg" data-needs="avrg">LPMM vs AVRG</button>
+        <button role="tab" aria-selected="false" aria-controls="v-ffri"   id="t-ffri" data-needs="ffri">Flash flood</button>
+        <button role="tab" aria-selected="false" aria-controls="v-pad"    id="t-pad">Site timeline</button>
+        <button role="tab" aria-selected="false" aria-controls="v-verify" id="t-verify">Verification</button>
+        <button role="tab" aria-selected="false" aria-controls="v-cases"  id="t-cases">Look back</button>
+      </div>
+
+      <section class="view" id="v-loop" role="tabpanel" aria-labelledby="t-loop">
+        <div class="loop-wrap" data-loop="lpmm">
+          <div class="figure"><img class="loop-img" alt="6-hour LPMM frame"></div>
+          <div class="controls">
+            <button class="btn prev" aria-label="Previous frame">◀</button>
+            <button class="btn play">Play</button>
+            <button class="btn next" aria-label="Next frame">▶</button>
+            <input type="range" class="slider" min="0" max="7" value="0" aria-label="Forecast period">
+            <span class="frame-label"></span>
+          </div>
+          <div class="kbd">Arrow keys step frames, space plays and pauses.</div>
+        </div>
+      </section>
+
+      <section class="view" id="v-prob" role="tabpanel" aria-labelledby="t-prob" hidden>
+        <p class="note">Ensemble agreement scale probability that 6-h QPF meets the threshold. Spread is built in, so this answers “how likely” where LPMM only answers “how much.”</p>
+        <div class="seg" id="eas-seg" role="group" aria-label="Threshold"></div>
+        <div class="loop-wrap" data-loop="eas">
+          <div class="figure"><img class="loop-img" alt="6-hour exceedance probability frame"></div>
+          <div class="controls">
+            <button class="btn prev" aria-label="Previous frame">◀</button>
+            <button class="btn play">Play</button>
+            <button class="btn next" aria-label="Next frame">▶</button>
+            <input type="range" class="slider" min="0" max="7" value="0" aria-label="Forecast period">
+            <span class="frame-label"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="v-trend" role="tabpanel" aria-labelledby="t-trend" hidden>
+        <p class="note">Same 48-h valid window from the latest run and the two previous 6-hourly cycles. A wetter or drier trend across panels is the signal; × marks each panel’s maximum.</p>
+        <div class="figure"><img data-src="trend_48h.png" alt="48-hour LPMM, latest vs previous runs"></div>
+        <div class="fig-actions"><a data-dl="trend_48h.png" download>Download PNG</a></div>
+      </section>
+
+      <section class="view" id="v-thresh" role="tabpanel" aria-labelledby="t-thresh" hidden>
+        <p class="note">Areas where each run’s 48-h LPMM meets the threshold. Overlap between colors means the runs agree on placement.</p>
+        <div class="figure"><img data-src="thresholds_48h.png" alt="Threshold paintball by run"></div>
+        <div class="fig-actions"><a data-dl="thresholds_48h.png" download>Download PNG</a></div>
+      </section>
+
+      <section class="view" id="v-avrg" role="tabpanel" aria-labelledby="t-avrg" hidden>
+        <p class="note">LPMM keeps realistic peak amounts; AVRG blends the probability-matched mean with the plain mean, so it runs smoother and lower in the cores. A large green difference over a small area is a high-impact but low-confidence core. Little difference means the members agree.</p>
+        <div class="figure"><img data-src="lpmm_vs_avrg.png" alt="LPMM, AVRG and their difference"></div>
+        <div class="fig-actions"><a data-dl="lpmm_vs_avrg.png" download>Download PNG</a></div>
+      </section>
+
+      <section class="view" id="v-ffri" role="tabpanel" aria-labelledby="t-ffri" hidden>
+        <p class="note">Highest neighborhood probability, in any 6-h window of the next 48 h, that rainfall exceeds flash flood guidance or a recurrence-interval amount. Florida guidance values are high, so anything above about 10% here is notable.</p>
+        <div class="figure"><img data-src="ffri_48h.png" alt="Flash flood and recurrence interval probabilities"></div>
+        <div class="fig-actions"><a data-dl="ffri_48h.png" download>Download PNG</a></div>
+      </section>
+
+      <section class="view" id="v-pad" role="tabpanel" aria-labelledby="t-pad" hidden>
+        <p class="note" id="pad-note">Nearest grid point. Bars are the latest LPMM, solid lines earlier runs, dashed AVRG. The bottom panel is the EAS 6-h probability at the site.</p>
+        <div class="seg" id="tl-seg" role="group" aria-label="Site" style="flex-wrap:wrap"></div>
+        <div class="figure"><img id="tl-img" alt="Hourly, accumulated and probabilistic QPF at the site"></div>
+        <div class="fig-actions"><a id="tl-dl" download>Download PNG</a></div>
+      </section>
+
+      <section class="view" id="v-verify" role="tabpanel" aria-labelledby="t-verify" hidden>
+        <div id="verify-body"></div>
+      </section>
+
+      <section class="view" id="v-cases" role="tabpanel" aria-labelledby="t-cases" hidden>
+        <div class="cases">
+          <div>
+            <div class="case-list" id="case-list"></div>
+            <div class="card howto" id="howto" style="margin-top:12px"></div>
+          </div>
+          <div id="case-body"></div>
+        </div>
+      </section>
+    </main>
+
+    <aside>
+      <section>
+        <h2>Runs</h2>
+        <div class="legend-runs" id="runs"></div>
+        <p class="facts" id="facts"></p>
+      </section>
+      <section>
+        <h2>Verification</h2>
+        <div id="vsnap" class="facts" style="margin-top:0">No runs scored yet.</div>
+      </section>
+      <section>
+        <h2>Status pages</h2>
+        <div class="links">
+          <a href="https://www.nco.ncep.noaa.gov/pmb/nwprod/prodstat/" target="_blank" rel="noreferrer">NCO model production status</a>
+          <a href="https://nomads.ncep.noaa.gov/status.php" target="_blank" rel="noreferrer">NOMADS server status</a>
+          <a href="https://nomads.ncep.noaa.gov/pub/data/nccf/com/refs/prod/" target="_blank" rel="noreferrer">REFS ensprod directory</a>
+          <a href="https://www.nco.ncep.noaa.gov/pmb/products/refs/" target="_blank" rel="noreferrer">REFS product inventory</a>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <section class="card sites">
+    <h2>Site totals, next 48 h</h2>
+    <div class="table-wrap"><table>
+      <thead>
+        <tr>
+          <th></th><th colspan="5" style="text-align:left">REFS 48-h QPF, latest run</th>
+          <th class="grp" colspan="3" style="text-align:left">REFS ensemble probability, highest 6-h window</th>
+        </tr>
+        <tr>
+          <th>Site</th><th>LPMM</th><th>AVRG</th><th title="Latest LPMM minus the run 6 h earlier, same 48-h window">LPMM vs −6 h run</th>
+          <th id="nb-head">LPMM 10 km max</th><th>LPMM peak 1 h</th>
+          <th class="grp" title="EAS: share of members (with neighborhood) at or above the threshold">EAS ≥ 0.5″</th>
+          <th title="EAS: share of members (with neighborhood) at or above the threshold">EAS ≥ 1″</th>
+          <th title="FFRI: probability 6-h QPF exceeds flash flood guidance">FFRI &gt; FFG</th>
+        </tr>
+      </thead>
+      <tbody id="sites"></tbody>
+    </table></div>
+    <p class="note" style="margin:10px 0 0">LPMM and AVRG are single fields built from the REFS members. The probability columns come from all members, not from LPMM:
+      EAS is the ensemble-agreement-scale probability that 6-h QPF reaches the threshold, and FFRI is the probability 6-h QPF exceeds flash flood guidance. Each is the highest value over the eight 6-h windows in the next 48 h.</p>
+    <p class="note" id="diag-note" style="margin:6px 0 0"></p>
+  </section>
+
+  <footer>
+    LPMM is a localized probability-matched mean: realistic amounts and structure, but a single field. Use Probability, Thresholds and LPMM vs AVRG for spread.
+    Verification scores each run’s 48-h total against MRMS multi-sensor (Pass 2) QPE once the window closes.
+    Look back compares REFS, HRRR, RRFS, GFS, ECMWF IFS/AIFS and the GEFS/ECMWF ensembles with MRMS for any past window. Built from NCEP REFS on NOMADS and AWS, about 3.5 h after each 00, 06, 12 and 18Z cycle.
+  </footer>
+</div>
+
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Full-size image"><img alt=""></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  let meta = null, stamp = "";
+  let tlSel = localStorage.getItem("rbSite");
+
+  const fmtUTC = (iso, opts) => new Date(iso).toLocaleString("en-US",
+    Object.assign({ timeZone: "UTC", weekday: "short", hour: "2-digit", hour12: false }, opts || {})) + "Z";
+  const dayUTC = (iso) => fmtUTC(iso, { day: "2-digit", month: "short" });
+  const esc = (t) => String(t ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  const inch = (v) => v == null ? "—" : (v < 0.01 ? "0" : v.toFixed(2)) + "″";
+  const num = (v, d = 2) => v == null ? "—" : v.toFixed(d);
+  const pcls = (p) => p == null ? "" : p >= 50 ? "p-hi" : p >= 20 ? "p-mid" : "p-lo";
+  const pct = (p) => p == null ? "—" : `<span class="${pcls(p)}">${p}%</span>`;
+
+  // ---------- tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function select(tab) {
+    tabs.forEach(t => {
+      const on = t === tab;
+      t.setAttribute("aria-selected", on);
+      $(t.getAttribute("aria-controls")).hidden = !on;
+    });
+    loopers.forEach(l => l.stop());
+    document.querySelector(".grid").classList.toggle("wide", tab.id === "t-cases");
+    history.replaceState(null, "", "#" + tab.id.slice(2));
+  }
+  tabs.forEach(t => t.addEventListener("click", () => select(t)));
+
+  // ---------- lightbox
+  const lb = $("lightbox");
+  document.addEventListener("click", e => {
+    if (e.target.matches(".figure img")) { lb.querySelector("img").src = e.target.src; lb.classList.add("open"); }
+  });
+  lb.addEventListener("click", () => lb.classList.remove("open"));
+
+  // ---------- loops
+  function Looper(root) {
+    const img = root.querySelector(".loop-img"), slider = root.querySelector(".slider"),
+          label = root.querySelector(".frame-label"), playBtn = root.querySelector(".play");
+    let frames = [], i = 0, timer = null;
+    const self = {
+      root,
+      set(f) { frames = f || []; slider.max = Math.max(0, frames.length - 1); self.show(Math.min(i, slider.max)); },
+      show(k) {
+        if (!frames.length) return;
+        i = (k + frames.length) % frames.length;
+        const f = frames[i];
+        img.src = f.file + "?v=" + stamp; slider.value = i;
+        label.textContent = `${f.fhr}, ends ${fmtUTC(f.end)}`;
+      },
+      stop() { clearInterval(timer); timer = null; playBtn.textContent = "Play"; },
+      toggle() {
+        if (timer) return self.stop();
+        playBtn.textContent = "Pause";
+        timer = setInterval(() => self.show(i + 1), 900);
+      },
+      step(d) { self.stop(); self.show(i + d); },
+    };
+    root.querySelector(".prev").onclick = () => self.step(-1);
+    root.querySelector(".next").onclick = () => self.step(1);
+    playBtn.onclick = self.toggle;
+    slider.oninput = (e) => { self.stop(); self.show(+e.target.value); };
+    return self;
+  }
+  const loopers = [...document.querySelectorAll("[data-loop]")].map(Looper);
+  const lpmmLoop = loopers[0], easLoop = loopers[1];
+  let easThr = null;
+
+  document.addEventListener("keydown", e => {
+    if (lb.classList.contains("open") && e.key === "Escape") return lb.classList.remove("open");
+    if (e.target.matches("input")) return;
+    const active = loopers.find(l => !l.root.closest(".view").hidden);
+    if (!active) return;
+    if (e.key === "ArrowRight") active.step(1);
+    if (e.key === "ArrowLeft") active.step(-1);
+    if (e.key === " ") { e.preventDefault(); active.toggle(); }
+  });
+
+  function drawEasSeg() {
+    const sets = meta.eas_frames || {};
+    const keys = Object.keys(sets).sort((a, b) => a - b);
+    if (!keys.length) return;
+    if (!easThr || !sets[easThr]) easThr = keys.includes("0.5") ? "0.5" : keys[0];
+    $("eas-seg").innerHTML = keys.map(k =>
+      `<button aria-pressed="${k === easThr}" data-k="${k}">≥ ${k}″</button>`).join("");
+    $("eas-seg").querySelectorAll("button").forEach(b => b.onclick = () => {
+      easThr = b.dataset.k; drawEasSeg();
+    });
+    easLoop.set(sets[easThr]);
+  }
+
+  // ---------- ribbon
+  function ribbonPos(v, levels) {
+    const n = levels.length - 1;
+    if (v == null || v < levels[0]) return 0;
+    for (let k = 0; k < n; k++)
+      if (v < levels[k + 1]) return (k + (v - levels[k]) / (levels[k + 1] - levels[k])) / (n + 1) * 100;
+    return Math.min(100, (n + 0.5) / (n + 1) * 100);
+  }
+  function drawRibbon() {
+    const { levels, colors } = meta.colorscale;
+    const cols = `repeat(${colors.length + 1}, 1fr)`;
+    $("ribbon-bar").style.gridTemplateColumns = cols; $("ribbon-labels").style.gridTemplateColumns = cols;
+    $("ribbon-bar").innerHTML = colors.map(c => `<span style="background:${c}"></span>`).join("") +
+                                `<span style="background:#d9a678"></span>`;
+    const shown = new Set([0.01, 0.25, 0.5, 1, 2, 3, 5, 8, 12, 18]);
+    $("ribbon-labels").innerHTML = levels.map(l => `<span>${shown.has(l) ? l : ""}</span>`).join("");
+
+    document.querySelectorAll(".tick").forEach(t => t.remove());
+    let rbSel = localStorage.getItem("rbSite");
+    if (!meta.sites.find(s => s.name === rbSel)) rbSel = meta.primary_site;
+    const site = meta.sites.find(s => s.name === rbSel);
+    const sel = $("rb-site");
+    if (sel.options.length !== meta.sites.length) {
+      sel.innerHTML = meta.sites.map(x => `<option value="${esc(x.name)}">${esc(x.name)}</option>`).join("");
+      sel.onchange = () => {
+        localStorage.setItem("rbSite", sel.value);
+        drawRibbon();
+        if ((meta.timelines || []).find(t => t.site === sel.value)) { tlSel = sel.value; drawTimelines(); }
+      };
+    }
+    sel.value = rbSel;
+    const add = (cls, v, html, color) => {
+      const t = document.createElement("div");
+      t.className = "tick " + cls; t.style.left = ribbonPos(v, levels) + "%";
+      if (color) t.style.setProperty("--c", color);
+      t.innerHTML = html; $("ribbon").appendChild(t);
+    };
+    if (site.avrg_total != null) add("avrg", site.avrg_total, `<i></i>`);
+    site.runs.slice(1).forEach((r, k) => add("prev", r.total, `<i></i>`, meta.runs[k + 1].color));
+    const a = site.runs[0];
+    add("", a.total, `<b style="color:${meta.runs[0].color}">${inch(a.total)}</b><i style="background:${meta.runs[0].color}"></i>`);
+
+    const tri = (k) => `<span style="color:${meta.runs[k].color}">▲</span>`;
+    let cap = `<strong>${esc(site.name)}</strong> 48-h LPMM <strong>${inch(a.total)}</strong>`;
+    if (site.avrg_total != null) cap += `, <span style="color:var(--avrg)">●</span> AVRG ${inch(site.avrg_total)}`;
+    site.runs.slice(1).forEach((r, k) => cap += `, ${tri(k + 1)} ${r.run} run ${inch(r.total)}`);
+    cap += `. Within ${meta.nbhd_km} km, up to ${inch(a.nbhd_max)}.`;
+    if (site.eas_max && site.eas_max["1"] != null) cap += ` Chance of ≥ 1″ in a 6-h window: ${site.eas_max["1"]}%.`;
+    $("ribbon-cap").innerHTML = cap;
+  }
+
+  // ---------- tables & sidebar
+  function drawSites() {
+    $("nb-head").textContent = `LPMM ${meta.nbhd_km} km max`;
+    $("sites").innerHTML = meta.sites.map(s => {
+      const [a, b] = s.runs;
+      let d = "—", cls = "flat";
+      if (b) {
+        const diff = a.total - b.total;
+        cls = Math.abs(diff) < 0.05 ? "flat" : diff > 0 ? "up" : "down";
+        d = (diff >= 0 ? "+" : "−") + Math.abs(diff).toFixed(2);
+      }
+      const peak = a.max_1h >= 0.01 ? `${a.max_1h.toFixed(2)} <span class="flat">${fmtUTC(a.max_1h_valid)}</span>` : "—";
+      const e = s.eas_max || {};
+      return `<tr class="${s.pad ? "pad" : ""}"><td title="${s.name}">${s.name}</td><td>${inch(a.total)}</td>
+        <td style="color:var(--avrg)">${inch(s.avrg_total)}</td><td class="${cls}">${d}</td><td>${inch(a.nbhd_max)}</td>
+        <td>${peak}</td><td class="grp">${pct(e["0.5"])}</td><td>${pct(e["1"])}</td><td>${pct(s.ffg_max)}</td></tr>`;
+    }).join("");
+  }
+
+  function drawSide() {
+    $("runs").innerHTML = meta.runs.map(r =>
+      `<span><i style="background:${r.color}"></i>${r.label}: ${dayUTC(r.init)}</span>`).join("");
+    const dm = meta.domain_max;
+    $("facts").innerHTML = `Domain max <strong>${inch(dm.value)}</strong> near ${dm.lat.toFixed(2)}°N, ${Math.abs(dm.lon).toFixed(2)}°W.<br>
+      Valid ${dayUTC(meta.valid_start)} to ${dayUTC(meta.valid_end)}.`;
+
+    const v = meta.verify;
+    if (!v) {
+      $("vsnap").innerHTML = "No runs scored yet. The first score lands about 2 days after the first published run.";
+      return;
+    }
+    const [el, nl] = v.ets1_lpmm, [ea] = v.ets1_avrg, [bl] = v.fbias1_lpmm, [ba] = v.fbias1_avrg;
+    $("vsnap").innerHTML = `
+      <div class="vstat">
+        <span class="h"></span><span class="h l">LPMM</span><span class="h a">AVRG</span>
+        <span>ETS ≥ 1″</span><span>${num(el)}</span><span>${num(ea)}</span>
+        <span>Freq. bias ≥ 1″</span><span>${num(bl)}</span><span>${num(ba)}</span>
+      </div>
+      <p class="facts">${v.n} runs scored; means use the last 30 with 1″ forecast or observed (${nl}).</p>`;
+  }
+
+  function drawVerify() {
+    const v = meta.verify, p = meta.products || {};
+    if (!v) {
+      $("verify-body").innerHTML = `<div class="empty">Each run’s 48-h forecast is archived and scored against MRMS once its window closes and the gauge-corrected QPE posts. The first score appears about 2 days after the first published run.</div>`;
+      return;
+    }
+    const rows = v.recent.map(s => {
+      const L = s.lpmm || {}, A = s.avrg || {};
+      return `<tr><td>${dayUTC(s.init)}</td><td>${inch(s.pad.obs)}</td><td>${inch(s.pad.lpmm)}</td><td>${inch(s.pad.avrg)}</td>
+        <td class="grp">${num(L.ets && L.ets["1"])}</td><td>${num(A.ets && A.ets["1"])}</td>
+        <td class="grp">${num(L.bias_ratio)}</td><td>${num(A.bias_ratio)}</td><td>${inch(s.obs_max)}</td><td>${s.regime || "—"}</td></tr>`;
+    }).join("");
+    const reg = (v.by_regime || []).map(g => {
+      const src = Object.entries(g.sources).map(([k, n]) => `${n} ${k}`).join(", ");
+      return `<tr><td>${g.regime}</td><td>${g.n}</td><td class="grp">${num(g.ets1_lpmm)}</td><td>${num(g.ets1_avrg)}</td>
+        <td class="grp">${num(g.bias_lpmm)}</td><td>${num(g.bias_avrg)}</td><td class="flat">${src}</td></tr>`;
+    }).join("");
+    const rr = meta.regime_rules || {};
+    $("verify-body").innerHTML = `
+      <p class="note">ETS ≥ 1″ near 0 means no skill beyond chance and 1 is perfect. Bias ratio is domain-total forecast over observed, so above 1 is too wet.</p>
+      ${p.verify_map ? `<div class="figure"><img src="verify_map.png?v=${stamp}" alt="MRMS vs REFS, most recent verified run"></div>` : ""}
+      ${p.verify ? `<div class="figure"><img src="verify.png?v=${stamp}" alt="Verification scores"></div>` : ""}
+      <div class="table-wrap" style="margin-top:16px"><table>
+        <thead><tr><th>Run</th><th>MRMS at pad</th><th>LPMM</th><th>AVRG</th>
+          <th class="grp">ETS 1″ LPMM</th><th>AVRG</th><th class="grp">Bias LPMM</th><th>AVRG</th><th>MRMS max</th><th>Flow</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      <h2 style="margin-top:24px">By flow regime</h2>
+      <p class="note">${rr.layer || "Layer-mean"} wind at ${rr.point || "the sounding site"}. Light below ${rr.light_kt} kt; mixed when vector-mean / mean speed is under ${rr.mixed_consistency}.
+        Source order: ${(meta.regime_rules || {}).point_name || "local"} sounding, then REFS 1-h analysis proxy, then the run’s own forecast.</p>
+      ${reg ? `<div class="table-wrap"><table><thead><tr><th>Regime</th><th>Runs</th><th class="grp">ETS 1″ LPMM</th><th>AVRG</th>
+        <th class="grp">Bias LPMM</th><th>AVRG</th><th>Tag source</th></tr></thead><tbody>${reg}</tbody></table></div>`
+        : `<div class="empty">No regime tags yet.</div>`}`;
+  }
+
+  const regTxt = (r) => r ? `${r.name}${r.name === "Light" || r.name === "Mixed" ? "" : ` ${r.dir}°`}, ${Math.round(r.spd_kt)} kt` : "—";
+  function drawRegime() {
+    const r = meta.regime;
+    if (!r) { $("regime-cap").textContent = ""; return; }
+    let t = `<span class="chip">${r.name}</span>Forecast 10 m–700 mb flow at ${(meta.regime_rules || {}).point_name || "the sounding site"}, next 48 h: <strong>${regTxt(r)}</strong>.`;
+    const g = meta.verify && (meta.verify.by_regime || []).find(x => x.regime === r.name);
+    if (g && g.n_ets >= meta.regime_min_n && g.ets1_lpmm != null && g.ets1_avrg != null) {
+      const better = g.ets1_avrg > g.ets1_lpmm + 0.02 ? "AVRG" : g.ets1_lpmm > g.ets1_avrg + 0.02 ? "LPMM" : null;
+      t += ` In past ${r.name} runs (${g.n_ets}), ETS ≥ 1″ was LPMM ${num(g.ets1_lpmm)} vs AVRG ${num(g.ets1_avrg)}` +
+           (better ? `, so lean on <strong>${better}</strong>.` : ", no clear winner.");
+    } else if (g) {
+      t += ` ${g.n} past ${r.name} run${g.n === 1 ? "" : "s"} scored; ${meta.regime_min_n} needed before comparing LPMM and AVRG.`;
+    }
+    $("regime-cap").innerHTML = t;
+  }
+
+  // ---------- look back
+  let caseIndex = [], caseSel = null;
+  async function loadCases() {
+    if (!(meta.products || {}).cases) { caseIndex = []; drawCases(); return; }
+    try {
+      const r = await fetch("cases/index.json?v=" + stamp, { cache: "no-store" });
+      caseIndex = r.ok ? await r.json() : [];
+    } catch (e) { caseIndex = []; }
+    drawCases();
+  }
+  function issueUrl(start, end, title, human) {
+    const repo = meta.repo;
+    if (!repo) return null;
+    const q = new URLSearchParams({ template: "lookback.yml", title: `Look-back: ${title ? title + " · " : ""}${human}`,
+                                    start, end, case_title: title || "" });
+    return `https://github.com/${repo}/issues/new?${q}`;
+  }
+  function drawCases() {
+    const now = new Date(Date.now() - 75 * 60e3);
+    const iso = (d) => d.toISOString().slice(0, 13) + ":00";
+    // Times are entered in Eastern (default) or UTC; the issue always receives UTC stamps.
+    const TZ = "America/New_York";
+    const zoneOffsetMin = (utcMs) => {           // minutes to add to UTC to get Eastern wall time
+      const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: TZ, hourCycle: "h23",
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+        .formatToParts(new Date(utcMs)).map(x => [x.type, x.value]));
+      return (Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute) - utcMs) / 60e3;
+    };
+    const wallToUtc = (dateStr, hour, zone) => {   // "2026-11-01", 7, "et" -> Date (UTC)
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const guess = Date.UTC(y, m - 1, d, hour);
+      if (zone === "utc") return new Date(guess);
+      let t = guess - zoneOffsetMin(guess) * 60e3;
+      t = guess - zoneOffsetMin(t) * 60e3;         // second pass settles DST edges
+      return new Date(t);
+    };
+    const etLabel = (d) => d.toLocaleString("en-US", { timeZone: TZ, weekday: "short", month: "short", day: "numeric", hour: "numeric" }) +
+      " " + (zoneOffsetMin(d.getTime()) === -240 ? "EDT" : "EST");
+    const zLabel = (d) => d.toLocaleString("en-US", { timeZone: "UTC", weekday: "short", day: "2-digit", month: "short", hour: "2-digit", hour12: false }) + "Z";
+    const stampOf = (d) => d.toISOString().slice(0, 13).replace(/[-T]/g, "");
+    let zone = localStorage.getItem("rqZone") || "et";
+    const hourOpts = (sel) => Array.from({ length: 24 }, (_, h) => {
+      const lab = zone === "utc" ? `${String(h).padStart(2, "0")}Z` : `${(h % 12) || 12} ${h < 12 ? "AM" : "PM"}`;
+      return `<option value="${h}" ${h === sel ? "selected" : ""}>${lab}</option>`;
+    }).join("");
+    const lastSyn = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), Math.floor(now.getUTCHours() / 6) * 6));
+    const prevSyn = new Date(lastSyn - 24 * 3.6e6);
+    const wall = (d) => {                           // Date -> {date, hour} in the chosen zone
+      const x = zone === "utc" ? d : new Date(d.getTime() + zoneOffsetMin(d.getTime()) * 60e3);
+      return { date: x.toISOString().slice(0, 10), hour: x.getUTCHours() };
+    };
+    const renderForm = (sDate, eDate) => {
+      const s0 = wall(sDate), e0 = wall(eDate);
+      $("howto").innerHTML = `<h2>Request a look-back</h2>
+        <div class="seg" role="group" aria-label="Time zone" style="margin:4px 0 2px">
+          <button data-z="et" aria-pressed="${zone === "et"}">Eastern</button><button data-z="utc" aria-pressed="${zone === "utc"}">UTC</button>
+        </div>
+        <div class="req">
+          <label>Start</label>
+          <div style="display:flex;gap:6px"><input id="rq-sd" type="date" value="${s0.date}" style="flex:1"><select id="rq-sh" class="btn" style="width:112px">${hourOpts(s0.hour)}</select></div>
+          <label>End</label>
+          <div style="display:flex;gap:6px"><input id="rq-ed" type="date" value="${e0.date}" style="flex:1"><select id="rq-eh" class="btn" style="width:112px">${hourOpts(e0.hour)}</select></div>
+          <label for="rq-title">Title</label><input id="rq-title" type="text" maxlength="80" placeholder="What happened">
+          <p class="note" id="rq-prev" style="margin:10px 0 0"></p>
+          <button class="btn" id="rq-go">Request on GitHub</button>
+          <div class="err" id="rq-err"></div>
+        </div>
+        <p>Opens a pre-filled GitHub issue (free GitHub account needed); press <strong>Create</strong> there without editing the times.
+          The issue shows them in UTC, which is what the builder reads. Builds in about 10–15 min; the link is posted on the issue.</p>`;
+      $("howto").querySelectorAll("[data-z]").forEach(b => b.onclick = () => {
+        const cur = read(); zone = b.dataset.z; localStorage.setItem("rqZone", zone);
+        renderForm(cur.s || sDate, cur.e || eDate);
+      });
+      ["rq-sd", "rq-sh", "rq-ed", "rq-eh"].forEach(id => $(id).onchange = preview);
+      $("rq-go").onclick = submit;
+      preview();
+    };
+    const read = () => {
+      const sd = $("rq-sd") && $("rq-sd").value, ed = $("rq-ed") && $("rq-ed").value;
+      const s = sd ? wallToUtc(sd, +$("rq-sh").value, zone) : null;
+      const e = ed ? wallToUtc(ed, +$("rq-eh").value, zone) : null;
+      return { s, e, hrs: s && e ? Math.round((e - s) / 3.6e6) : NaN };
+    };
+    const preview = () => {
+      const { s, e, hrs } = read();
+      if (!s || !e) { $("rq-prev").textContent = ""; return; }
+      const syn = s.getUTCHours() % 6 === 0 && e.getUTCHours() % 6 === 0;
+      const tri = s.getUTCHours() % 3 === 0 && e.getUTCHours() % 3 === 0;
+      $("rq-prev").innerHTML = `<strong>${etLabel(s)} to ${etLabel(e)}</strong><br>= ${zLabel(s)} to ${zLabel(e)} (${hrs} h).` +
+        (syn ? (hrs > 48 ? " HRRR runs end at f48, so it’s skipped over 48 h." : " All models included.")
+             : `<br><span style="color:var(--warn)">${tri ? "AIFS is" : "GEFS, ECMWF IFS/ENS and AIFS are"} skipped at these hours.
+                For every model use 1 AM, 7 AM, 1 PM or 7 PM EST (2/8 AM/PM EDT), which are 06/12/18/00Z.</span>`);
+    };
+    const submit = () => {
+      const { s, e, hrs } = read();
+      if (!s || !e) { $("rq-err").textContent = "Pick both dates."; return; }
+      if (!(hrs >= 3 && hrs <= 72)) { $("rq-err").textContent = "Window must be 3–72 h long."; return; }
+      if (e > now) { $("rq-err").textContent = "End must be at least 70 minutes ago."; return; }
+      const t = $("rq-title").value.trim();
+      const url = issueUrl(stampOf(s), stampOf(e), t, `${zLabel(s)}–${zLabel(e)} (${etLabel(s)}–${etLabel(e)})`);
+      if (!url) { $("rq-err").textContent = "Repository unknown; run the main workflow once so the site knows its repo."; return; }
+      $("rq-err").textContent = ""; window.open(url, "_blank", "noopener");
+    };
+    renderForm(prevSyn, lastSyn);
+    if (!caseIndex.length) {
+      $("case-list").innerHTML = "";
+      $("case-body").innerHTML = `<div class="empty">No look-backs yet. A 24-h case builds automatically after each 12Z cycle, or request one.</div>`;
+      return;
+    }
+    const hidden = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]"));
+    const showHidden = localStorage.getItem("showHidden") === "1";
+    const visible = caseIndex.filter(c => showHidden || !hidden.has(c.id));
+    const nHidden = caseIndex.filter(c => hidden.has(c.id)).length;
+    $("case-list").innerHTML = visible.map(c => `
+      <button data-id="${c.id}" aria-current="${c.id === caseSel}">
+        <b>${esc(c.title)}</b>
+        <small>${c.hours} h to ${dayUTC(c.end)}${c.obs ? `, max ${inch(c.obs.max)} near ${c.obs.near}` : ""}</small>
+      </button>`).join("") + (nHidden ? `<button class="hidden-toggle" id="tog-hidden">${showHidden ? "Hide" : "Show"} ${nHidden} hidden</button>` : "");
+    $("case-list").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => showCase(b.dataset.id));
+    if ($("tog-hidden")) $("tog-hidden").onclick = () => { localStorage.setItem("showHidden", showHidden ? "0" : "1"); drawCases(); };
+    if (!visible.length) { $("case-body").innerHTML = `<div class="empty">All cases are hidden on this device.</div>`; return; }
+    if (!caseSel || !visible.find(c => c.id === caseSel)) {
+      const want = location.hash.startsWith("#case-") ? location.hash.slice(6) : null;
+      showCase(caseIndex.find(c => c.id === want) ? want : visible[0].id, !!want);
+    }
+  }
+  const STAT = { mean: "mean", p75: "P75", max: "max" };
+  function modelInfo(c, name) {
+    const [k, st] = name.split("_");
+    const m = (c.models || {})[k] || { label: k, color: "var(--text)" };
+    return { label: m.label + (st ? " " + STAT[st] : ""), color: m.color, base: k, stat: st };
+  }
+  async function showCase(id, fromHash) {
+    caseSel = id;
+    $("case-list").querySelectorAll("button").forEach(b => b.setAttribute("aria-current", b.dataset.id === id));
+    if (!fromHash && !$("v-cases").hidden) history.replaceState(null, "", "#case-" + id);
+    let c;
+    try { c = await (await fetch(`cases/${id}/case.json?v=${stamp}`)).json(); }
+    catch (e) { $("case-body").innerHTML = `<div class="empty">case.json for ${id} could not be loaded.</div>`; return; }
+    const img = (f, alt) => (c.images || []).includes(f) ? `<div class="figure"><img src="cases/${id}/${f}?v=${stamp}" alt="${alt}"></div>` : "";
+    const order = Object.keys(c.models || {});
+    const sorted = c.rows.slice().sort((a, b) => {
+      const A = modelInfo(c, a.model), B = modelInfo(c, b.model);
+      return order.indexOf(A.base) - order.indexOf(B.base) || (A.stat || "").localeCompare(B.stat || "") || a.lead - b.lead;
+    });
+    const rows = sorted.map(r => { const m = modelInfo(c, r.model); return `
+      <tr><td style="color:${m.color}">${m.label}</td><td>${dayUTC(r.init)}</td><td>${r.lead} h</td><td class="flat">${r.grid_km ? Math.round(r.grid_km) + " km" : ""}</td>
+        <td>${inch(r.near_event_max)}</td><td>${inch(r.domain_max)}</td>
+        <td class="grp">${num(r.ets_1)}</td><td>${num(r.ets_2)}</td><td>${num(r.ets_4)}</td><td class="grp">${num(r.bias_ratio)}</td></tr>`; }).join("");
+    const shortest = {};
+    c.rows.forEach(r => { if (!shortest[r.model] || r.lead < shortest[r.model].lead) shortest[r.model] = r; });
+    const cols = Object.keys(shortest).filter(k => !k.endsWith("_mean"))
+      .sort((a, b) => order.indexOf(modelInfo(c, a).base) - order.indexOf(modelInfo(c, b).base) || a.localeCompare(b));
+    const siteRows = Object.keys(c.obs.sites).map(n => `<tr><td>${n}</td><td>${inch(c.obs.sites[n])}</td>${
+      cols.map(m => `<td>${inch(shortest[m].sites[n])}</td>`).join("")}</tr>`).join("");
+    const refs0 = c.rows.filter(x => x.model === "REFS").sort((a, b) => a.lead - b.lead)[0];
+    const hiddenNow = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]")).has(c.id);
+    const sm = c.summary;
+    const card = sm ? `<div class="scorecard">
+        <h2 style="margin:0">Which model did best</h2>
+        <ul>${sm.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Model</th><th>Run</th><th>Score</th><th class="grp">Placement</th><th>Peak</th><th>Volume</th>
+            <th class="grp">ETS ≥ ${sm.event_threshold}″</th><th>Peak vs obs</th><th>Volume vs obs</th></tr></thead>
+          <tbody>${sm.scores.map(x => { const m = modelInfo(c, x.model); const pc = (v) => v == null ? "—" : Math.round(v * 100) + "%"; return `
+            <tr><td style="color:${m.color}">${esc(x.label)}</td><td class="flat">${dayUTC(x.init).replace(/^\w+, /, "")} · ${x.lead} h</td>
+              <td><span class="bar" style="width:${Math.round(x.score * 60)}px"></span>${x.score.toFixed(2)}</td>
+              <td class="grp">${num(x.sub.placement)}</td><td>${num(x.sub.peak)}</td><td>${num(x.sub.volume)}</td>
+              <td class="grp">${num(x.ets)}</td><td>${pc(x.peak_ratio)}</td><td>${pc(x.bias)}</td></tr>`; }).join("")}</tbody>
+        </table></div>
+        <p class="note" style="margin:8px 0 0">${esc(sm.method)} Event threshold ${sm.event_threshold}″ is the highest that MRMS exceeded over at least 5% of the map.</p>
+      </div>` : "";
+    $("case-body").innerHTML = `
+      <div class="case-actions">
+        <button class="btn" id="cs-hide">${hiddenNow ? "Unhide" : "Hide on this device"}</button>
+        ${meta.repo ? `<button class="btn" id="cs-del" title="Opens a GitHub issue; only the repository owner's request is acted on">Delete for everyone…</button>` : ""}
+      </div>
+      <h3 class="case-head">${esc(c.title)}</h3>
+      ${(c.ecmwf_reader || 1) < 2 && c.rows.some(r => r.model === "AIFS") ? `<p class="note" style="color:var(--warn);margin:0 0 8px">
+        Built before the 3 Nov AIFS fix: AIFS values here cover only the last 6 h of the window (about 4× too low).
+        Rebuild it from Actions → Look back with <strong>rebuild</strong> checked.</p>` : ""}
+      <p class="case-sub">${dayUTC(c.start)} to ${dayUTC(c.end)} (${c.hours} h). MRMS max <strong>${inch(c.obs.max)}</strong>
+        ${c.obs.near_km < 3 ? "at" : `${c.obs.near_km} km from`} ${c.obs.near}${refs0 && refs0.near_event_max != null ? `; the shortest-lead REFS LPMM reached ${inch(refs0.near_event_max)} within ${c.event_radius_km} km` : ""}.
+        ○ marks the observed max. Coarse models are scored against MRMS averaged over their grid box (the 25-km-mean MRMS max was ${inch(c.obs.area_max)}),
+        so compare a 0.25° model with that number, not the 1-km peak. Ensemble “max” is the wettest member at each point, an upper envelope rather than a forecast.</p>
+      ${card}
+      ${img("dprog.png", "Forecast trend by lead time")}
+      ${img("models.png", "Shortest-lead forecasts vs MRMS")}
+      ${img("ens.png", "Global ensembles vs MRMS")}
+      ${img("refs.png", "REFS LPMM at each lead vs MRMS")}
+      <div class="table-wrap" style="margin-top:16px"><table>
+        <thead><tr><th></th><th colspan="5" style="text-align:left">${c.hours}-h window totals</th><th class="grp" colspan="3"></th><th class="grp"></th></tr>
+          <tr><th>Model</th><th>Run</th><th>Lead</th><th>Grid</th><th>Near max</th><th>Domain max</th>
+          <th class="grp">ETS 1″</th><th>2″</th><th>4″</th><th class="grp">Bias</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      <div class="table-wrap" style="margin-top:16px"><table>
+        <thead>
+          <tr><th></th><th colspan="${cols.length + 1}" style="text-align:left">${c.hours}-h total (in). Each model column is its shortest-lead run: run time and hours before the window start.</th></tr>
+          <tr><th>Site</th><th>MRMS</th>${cols.map(m => { const i = modelInfo(c, m); const r = shortest[m];
+            return `<th style="color:${i.color}">${i.label}<br><span class="flat" style="font-weight:500">${dayUTC(r.init).replace(/^\w+, /, "")} · ${r.lead} h lead</span></th>`; }).join("")}</tr>
+        </thead>
+        <tbody>${siteRows}</tbody></table></div>
+      ${c.notes.length ? `<p class="note" style="margin-top:12px">Not available: ${esc(c.notes.join(", "))}.</p>` : ""}`;
+    $("cs-hide").onclick = () => {
+      const h = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]"));
+      h.has(c.id) ? h.delete(c.id) : h.add(c.id);
+      localStorage.setItem("hiddenCases", JSON.stringify([...h]));
+      caseSel = null; drawCases();
+    };
+    if ($("cs-del")) $("cs-del").onclick = () => {
+      if (!confirm(`Delete “${c.title}” for everyone? This opens a GitHub issue; it only goes through if you own the repository.`)) return;
+      const q = new URLSearchParams({ title: `Delete case: ${c.id}`, body: `Remove look-back \`${c.id}\` (${c.title}).` });
+      window.open(`https://github.com/${meta.repo}/issues/new?${q}`, "_blank", "noopener");
+    };
+  }
+
+  function drawTimelines() {
+    const t = meta.timelines || [{ site: meta.primary_site, file: "pad_timeline.png" }];
+    if (!tlSel || !t.find(x => x.site === tlSel)) tlSel = t[0].site;
+    const lab = (n) => { const s = (meta.sites || []).find(x => x.name === n); return s && s.label && t.length > 12 ? `${s.label} · ${n.split(" (")[0]}` : n.split(" (")[0]; };
+    if (t.length > 12) {
+      $("tl-seg").outerHTML = `<select id="tl-seg" class="btn" aria-label="Site" style="margin-bottom:12px;min-width:260px">${
+        t.map(x => `<option value="${esc(x.site)}" ${x.site === tlSel ? "selected" : ""}>${esc(lab(x.site))}</option>`).join("")}</select>`;
+      $("tl-seg").onchange = (e) => { tlSel = e.target.value; drawTimelines(); };
+    } else {
+      $("tl-seg").innerHTML = t.map(x => `<button aria-pressed="${x.site === tlSel}" data-s="${esc(x.site)}">${esc(lab(x.site))}</button>`).join("");
+      $("tl-seg").querySelectorAll("button").forEach(b => b.onclick = () => { tlSel = b.dataset.s; drawTimelines(); });
+    }
+    const f = t.find(x => x.site === tlSel).file;
+    $("tl-img").src = f + "?v=" + stamp; $("tl-dl").href = f + "?v=" + stamp;
+  }
+  function drawDiag() {
+    const d = (meta.diagnostics || {}).eas || {};
+    const keys = Object.keys(d);
+    const matched = keys.filter(k => (d[k].matched || []).length).length;
+    $("diag-note").textContent = keys.length && !matched
+      ? `EAS decoded no usable thresholds this run (thresholds seen, in: ${(d[keys[0]].thresholds_in || []).join(", ") || "none"}). The EAS columns and Probability tab are empty until that is fixed.`
+      : "";
+  }
+
+  function drawStatus() {
+    const ageH = (Date.now() - new Date(meta.runs[0].init)) / 3.6e6;
+    const s = ageH < 10 ? "fresh" : ageH < 16 ? "aging" : "stale";
+    $("status").dataset.s = s;
+    $("status-text").textContent = { fresh: "Current", aging: "One cycle behind", stale: "Stale" }[s];
+    $("status-detail").textContent = `${dayUTC(meta.runs[0].init)} run, ${ageH.toFixed(1)} h old. Built ${fmtUTC(meta.generated_utc, { minute: "2-digit" })}`;
+    const br = meta.branding || {};
+    document.title = br.title || "REFS QPF";
+    $("h-title").textContent = br.title || "REFS QPF";
+    $("sub").textContent = `${br.subtitle || "48-h ensemble QPF"}, valid through ${dayUTC(meta.valid_end)}`;
+  }
+
+  function drawTabs() {
+    const p = meta.products || {};
+    tabs.forEach(t => { if (t.dataset.needs) t.hidden = !p[t.dataset.needs]; });
+    const h = location.hash.startsWith("#case-") ? "#cases" : location.hash;
+    const want = tabs.find(t => "#" + t.id.slice(2) === h && !t.hidden);
+    const cur = tabs.find(t => t.getAttribute("aria-selected") === "true");
+    if (want && want !== cur) select(want);
+    else if (cur && cur.hidden) select(tabs[0]);
+  }
+
+  function drawImages() {
+    document.querySelectorAll("img[data-src]").forEach(img => img.src = img.dataset.src + "?v=" + stamp);
+    document.querySelectorAll("a[data-dl]").forEach(a => a.href = a.dataset.dl + "?v=" + stamp);
+    lpmmLoop.set(meta.frames);
+    drawEasSeg();
+  }
+
+  async function load() {
+    try {
+      const r = await fetch("meta.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const m = await r.json();
+      if (m.generated_utc !== stamp) {
+        meta = m; stamp = m.generated_utc;
+        drawTabs(); drawStatus(); drawRibbon(); drawRegime(); drawSites(); drawSide(); drawVerify(); drawImages(); drawTimelines(); drawDiag(); loadCases();
+      } else drawStatus();
+    } catch (e) {
+      if (!meta) {
+        $("status").dataset.s = "stale";
+        $("status-text").textContent = "No data published";
+        $("status-detail").textContent = "Run the workflow from the repository’s Actions tab.";
+        document.querySelector("main").insertAdjacentHTML("afterbegin",
+          `<div class="empty">meta.json was not found. Once the REFS workflow completes, maps appear here.</div>`);
+      }
+    }
+  }
+  load();
+  setInterval(load, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
