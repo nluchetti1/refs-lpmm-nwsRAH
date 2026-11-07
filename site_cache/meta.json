@@ -1,0 +1,2303 @@
+{
+ "generated_utc": "2026-11-07T19:32:39+00:00",
+ "repo": "nluchetti1/refs-lpmm-nwsRAH",
+ "accum_hours": 48,
+ "valid_start": "2026-11-07T12:00:00+00:00",
+ "valid_end": "2026-11-09T12:00:00+00:00",
+ "runs": [
+  {
+   "label": "Latest",
+   "init": "2026-11-07T12:00:00+00:00",
+   "color": "#4fd1e8"
+  },
+  {
+   "label": "\u22126 h",
+   "init": "2026-11-07T06:00:00+00:00",
+   "color": "#f0b429"
+  },
+  {
+   "label": "\u221212 h",
+   "init": "2026-11-07T00:00:00+00:00",
+   "color": "#e0607e"
+  }
+ ],
+ "primary_site": "Raleigh / Durham (KRDU)",
+ "nbhd_km": 10.0,
+ "thresholds": [
+  1.0,
+  2.0,
+  4.0,
+  6.0
+ ],
+ "eas_thresholds": [
+  0.25,
+  0.5,
+  1.0,
+  2.0
+ ],
+ "regime": {
+  "name": "NE",
+  "dir": 81,
+  "spd_kt": 15.2,
+  "consistency": 0.97,
+  "n": 8
+ },
+ "regime_min_n": 5,
+ "regime_rules": {
+  "light_kt": 5.0,
+  "mixed_consistency": 0.5,
+  "layer": "10 m\u2013700 mb (pressure-weighted)",
+  "point": "GSO, 25 km mean",
+  "point_name": "GSO"
+ },
+ "branding": {
+  "title": "Central NC REFS QPF",
+  "subtitle": "48-h ensemble QPF for the NWS Raleigh forecast area",
+  "area": "the NWS Raleigh CWA"
+ },
+ "domain_max": {
+  "value": 2.05,
+  "lat": 33.156,
+  "lon": -74.351
+ },
+ "sites": [
+  {
+   "name": "Fayetteville (KFAY)",
+   "label": "FAY",
+   "lat": 34.9912,
+   "lon": -78.8803,
+   "pad": true,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Greensboro/piedmont (asos) (KGSO)",
+   "label": "GSO",
+   "lat": 36.0975,
+   "lon": -79.9436,
+   "pad": true,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Winston-Salem/smith (asos) (KINT)",
+   "label": "INT",
+   "lat": 36.1337,
+   "lon": -80.222,
+   "pad": true,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Raleigh / Durham (KRDU)",
+   "label": "RDU",
+   "lat": 35.8922,
+   "lon": -78.7819,
+   "pad": true,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Rocky Mount-Wilson (asos) (KRWI)",
+   "label": "RWI",
+   "lat": 35.8562,
+   "lon": -77.8919,
+   "pad": true,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Wadesboro (KAFP)",
+   "label": "AFP",
+   "lat": 35.0206,
+   "lon": -80.0771,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Burlington-Alamance Reg (asos) (KBUY)",
+   "label": "BUY",
+   "lat": 36.0485,
+   "lon": -79.4749,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Clinton (KCTZ)",
+   "label": "CTZ",
+   "lat": 34.9756,
+   "lon": -78.3644,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Tarboro (KETC)",
+   "label": "ETC",
+   "lat": 35.9373,
+   "lon": -77.5465,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Lexington Davidson County Airp (KEXX)",
+   "label": "EXX",
+   "lat": 35.7811,
+   "lon": -80.3038,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Fort Bragg/simmons (KFBG)",
+   "label": "FBG",
+   "lat": 35.1318,
+   "lon": -78.9367,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Seymour-Johnson AFB (KGSB)",
+   "label": "GSB",
+   "lat": 35.3394,
+   "lon": -77.9606,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Goldsboro-Wayne Muni Arpt (KGWW)",
+   "label": "GWW",
+   "lat": 35.4606,
+   "lon": -77.9649,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Asheboro Muni Arpt (KHBI)",
+   "label": "HBI",
+   "lat": 35.6545,
+   "lon": -79.8948,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Mackall AAF (KHFF)",
+   "label": "HFF",
+   "lat": 35.0367,
+   "lon": -79.4974,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Henderson-Oxford Arpt (KHNZ)",
+   "label": "HNZ",
+   "lat": 36.36,
+   "lon": -78.53,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Erwin/harnett County Arpt (KHRJ)",
+   "label": "HRJ",
+   "lat": 35.3786,
+   "lon": -78.7336,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Roanoke Rapids (KIXA)",
+   "label": "IXA",
+   "lat": 36.3298,
+   "lon": -77.6352,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Smithfield (KJNX)",
+   "label": "JNX",
+   "lat": 35.5409,
+   "lon": -78.3903,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Louisburg/franklin Cnty Arpt (KLHZ)",
+   "label": "LHZ",
+   "lat": 36.0233,
+   "lon": -78.3303,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Laurinburg-Maxton Arpt (asos) (KMEB)",
+   "label": "MEB",
+   "lat": 34.7919,
+   "lon": -79.3658,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Pope AFB (KPOB)",
+   "label": "POB",
+   "lat": 35.1709,
+   "lon": -79.0145,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Rockingham (KRCZ)",
+   "label": "RCZ",
+   "lat": 34.89,
+   "lon": -79.76,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Siler City (KSCR)",
+   "label": "SCR",
+   "lat": 35.7043,
+   "lon": -79.5043,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Southern Pines AWOS (KSOP)",
+   "label": "SOP",
+   "lat": 35.2372,
+   "lon": -79.3911,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Roxboro (KTDF)",
+   "label": "TDF",
+   "lat": 36.2849,
+   "lon": -78.9842,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Durham - Duke North Heliport (KTQV)",
+   "label": "TQV",
+   "lat": 36.007,
+   "lon": -78.9373,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Sanford - Lee County (KTTA)",
+   "label": "TTA",
+   "lat": 35.5764,
+   "lon": -79.1034,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Albemarle (KVUJ)",
+   "label": "VUJ",
+   "lat": 35.4167,
+   "lon": -80.1508,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  },
+  {
+   "name": "Mount Olive (KW40)",
+   "label": "W40",
+   "lat": 35.2225,
+   "lon": -78.0375,
+   "pad": false,
+   "runs": [
+    {
+     "run": "Latest",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u22126 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    },
+    {
+     "run": "\u221212 h",
+     "total": 0.0,
+     "nbhd_max": 0.0,
+     "max_1h": 0.0,
+     "max_1h_valid": "2026-11-07T13:00:00+00:00"
+    }
+   ],
+   "avrg_total": 0.0,
+   "eas_max": {
+    "0.25": 0,
+    "0.5": 0,
+    "1": 0,
+    "2": 0
+   },
+   "ffg_max": 0
+  }
+ ],
+ "frames": [
+  {
+   "file": "loop_06h_01.png",
+   "start": "2026-11-07T12:00:00+00:00",
+   "end": "2026-11-07T18:00:00+00:00",
+   "fhr": "f00-f06"
+  },
+  {
+   "file": "loop_06h_02.png",
+   "start": "2026-11-07T18:00:00+00:00",
+   "end": "2026-11-08T00:00:00+00:00",
+   "fhr": "f06-f12"
+  },
+  {
+   "file": "loop_06h_03.png",
+   "start": "2026-11-08T00:00:00+00:00",
+   "end": "2026-11-08T06:00:00+00:00",
+   "fhr": "f12-f18"
+  },
+  {
+   "file": "loop_06h_04.png",
+   "start": "2026-11-08T06:00:00+00:00",
+   "end": "2026-11-08T12:00:00+00:00",
+   "fhr": "f18-f24"
+  },
+  {
+   "file": "loop_06h_05.png",
+   "start": "2026-11-08T12:00:00+00:00",
+   "end": "2026-11-08T18:00:00+00:00",
+   "fhr": "f24-f30"
+  },
+  {
+   "file": "loop_06h_06.png",
+   "start": "2026-11-08T18:00:00+00:00",
+   "end": "2026-11-09T00:00:00+00:00",
+   "fhr": "f30-f36"
+  },
+  {
+   "file": "loop_06h_07.png",
+   "start": "2026-11-09T00:00:00+00:00",
+   "end": "2026-11-09T06:00:00+00:00",
+   "fhr": "f36-f42"
+  },
+  {
+   "file": "loop_06h_08.png",
+   "start": "2026-11-09T06:00:00+00:00",
+   "end": "2026-11-09T12:00:00+00:00",
+   "fhr": "f42-f48"
+  }
+ ],
+ "eas_frames": {
+  "0.25": [
+   {
+    "file": "eas_0p25_01.png",
+    "start": "2026-11-07T12:00:00+00:00",
+    "end": "2026-11-07T18:00:00+00:00",
+    "fhr": "f00-f06"
+   },
+   {
+    "file": "eas_0p25_02.png",
+    "start": "2026-11-07T18:00:00+00:00",
+    "end": "2026-11-08T00:00:00+00:00",
+    "fhr": "f06-f12"
+   },
+   {
+    "file": "eas_0p25_03.png",
+    "start": "2026-11-08T00:00:00+00:00",
+    "end": "2026-11-08T06:00:00+00:00",
+    "fhr": "f12-f18"
+   },
+   {
+    "file": "eas_0p25_04.png",
+    "start": "2026-11-08T06:00:00+00:00",
+    "end": "2026-11-08T12:00:00+00:00",
+    "fhr": "f18-f24"
+   },
+   {
+    "file": "eas_0p25_05.png",
+    "start": "2026-11-08T12:00:00+00:00",
+    "end": "2026-11-08T18:00:00+00:00",
+    "fhr": "f24-f30"
+   },
+   {
+    "file": "eas_0p25_06.png",
+    "start": "2026-11-08T18:00:00+00:00",
+    "end": "2026-11-09T00:00:00+00:00",
+    "fhr": "f30-f36"
+   },
+   {
+    "file": "eas_0p25_07.png",
+    "start": "2026-11-09T00:00:00+00:00",
+    "end": "2026-11-09T06:00:00+00:00",
+    "fhr": "f36-f42"
+   },
+   {
+    "file": "eas_0p25_08.png",
+    "start": "2026-11-09T06:00:00+00:00",
+    "end": "2026-11-09T12:00:00+00:00",
+    "fhr": "f42-f48"
+   }
+  ],
+  "0.5": [
+   {
+    "file": "eas_0p5_01.png",
+    "start": "2026-11-07T12:00:00+00:00",
+    "end": "2026-11-07T18:00:00+00:00",
+    "fhr": "f00-f06"
+   },
+   {
+    "file": "eas_0p5_02.png",
+    "start": "2026-11-07T18:00:00+00:00",
+    "end": "2026-11-08T00:00:00+00:00",
+    "fhr": "f06-f12"
+   },
+   {
+    "file": "eas_0p5_03.png",
+    "start": "2026-11-08T00:00:00+00:00",
+    "end": "2026-11-08T06:00:00+00:00",
+    "fhr": "f12-f18"
+   },
+   {
+    "file": "eas_0p5_04.png",
+    "start": "2026-11-08T06:00:00+00:00",
+    "end": "2026-11-08T12:00:00+00:00",
+    "fhr": "f18-f24"
+   },
+   {
+    "file": "eas_0p5_05.png",
+    "start": "2026-11-08T12:00:00+00:00",
+    "end": "2026-11-08T18:00:00+00:00",
+    "fhr": "f24-f30"
+   },
+   {
+    "file": "eas_0p5_06.png",
+    "start": "2026-11-08T18:00:00+00:00",
+    "end": "2026-11-09T00:00:00+00:00",
+    "fhr": "f30-f36"
+   },
+   {
+    "file": "eas_0p5_07.png",
+    "start": "2026-11-09T00:00:00+00:00",
+    "end": "2026-11-09T06:00:00+00:00",
+    "fhr": "f36-f42"
+   },
+   {
+    "file": "eas_0p5_08.png",
+    "start": "2026-11-09T06:00:00+00:00",
+    "end": "2026-11-09T12:00:00+00:00",
+    "fhr": "f42-f48"
+   }
+  ],
+  "1": [
+   {
+    "file": "eas_1p0_01.png",
+    "start": "2026-11-07T12:00:00+00:00",
+    "end": "2026-11-07T18:00:00+00:00",
+    "fhr": "f00-f06"
+   },
+   {
+    "file": "eas_1p0_02.png",
+    "start": "2026-11-07T18:00:00+00:00",
+    "end": "2026-11-08T00:00:00+00:00",
+    "fhr": "f06-f12"
+   },
+   {
+    "file": "eas_1p0_03.png",
+    "start": "2026-11-08T00:00:00+00:00",
+    "end": "2026-11-08T06:00:00+00:00",
+    "fhr": "f12-f18"
+   },
+   {
+    "file": "eas_1p0_04.png",
+    "start": "2026-11-08T06:00:00+00:00",
+    "end": "2026-11-08T12:00:00+00:00",
+    "fhr": "f18-f24"
+   },
+   {
+    "file": "eas_1p0_05.png",
+    "start": "2026-11-08T12:00:00+00:00",
+    "end": "2026-11-08T18:00:00+00:00",
+    "fhr": "f24-f30"
+   },
+   {
+    "file": "eas_1p0_06.png",
+    "start": "2026-11-08T18:00:00+00:00",
+    "end": "2026-11-09T00:00:00+00:00",
+    "fhr": "f30-f36"
+   },
+   {
+    "file": "eas_1p0_07.png",
+    "start": "2026-11-09T00:00:00+00:00",
+    "end": "2026-11-09T06:00:00+00:00",
+    "fhr": "f36-f42"
+   },
+   {
+    "file": "eas_1p0_08.png",
+    "start": "2026-11-09T06:00:00+00:00",
+    "end": "2026-11-09T12:00:00+00:00",
+    "fhr": "f42-f48"
+   }
+  ],
+  "2": [
+   {
+    "file": "eas_2p0_01.png",
+    "start": "2026-11-07T12:00:00+00:00",
+    "end": "2026-11-07T18:00:00+00:00",
+    "fhr": "f00-f06"
+   },
+   {
+    "file": "eas_2p0_02.png",
+    "start": "2026-11-07T18:00:00+00:00",
+    "end": "2026-11-08T00:00:00+00:00",
+    "fhr": "f06-f12"
+   },
+   {
+    "file": "eas_2p0_03.png",
+    "start": "2026-11-08T00:00:00+00:00",
+    "end": "2026-11-08T06:00:00+00:00",
+    "fhr": "f12-f18"
+   },
+   {
+    "file": "eas_2p0_04.png",
+    "start": "2026-11-08T06:00:00+00:00",
+    "end": "2026-11-08T12:00:00+00:00",
+    "fhr": "f18-f24"
+   },
+   {
+    "file": "eas_2p0_05.png",
+    "start": "2026-11-08T12:00:00+00:00",
+    "end": "2026-11-08T18:00:00+00:00",
+    "fhr": "f24-f30"
+   },
+   {
+    "file": "eas_2p0_06.png",
+    "start": "2026-11-08T18:00:00+00:00",
+    "end": "2026-11-09T00:00:00+00:00",
+    "fhr": "f30-f36"
+   },
+   {
+    "file": "eas_2p0_07.png",
+    "start": "2026-11-09T00:00:00+00:00",
+    "end": "2026-11-09T06:00:00+00:00",
+    "fhr": "f36-f42"
+   },
+   {
+    "file": "eas_2p0_08.png",
+    "start": "2026-11-09T06:00:00+00:00",
+    "end": "2026-11-09T12:00:00+00:00",
+    "fhr": "f42-f48"
+   }
+  ]
+ },
+ "products": {
+  "eas": true,
+  "avrg": true,
+  "ffri": true,
+  "verify_map": true,
+  "verify": true,
+  "cases": true
+ },
+ "verify": {
+  "n": 6,
+  "ets1_lpmm": [
+   0.19,
+   6
+  ],
+  "ets1_avrg": [
+   0.23,
+   6
+  ],
+  "fbias1_lpmm": [
+   0.88,
+   6
+  ],
+  "fbias1_avrg": [
+   1.03,
+   6
+  ],
+  "by_regime": [
+   {
+    "regime": "SW",
+    "n": 6,
+    "sources": {
+     "raob": 6
+    },
+    "ets1_lpmm": 0.19,
+    "ets1_avrg": 0.23,
+    "n_ets": 6,
+    "bias_lpmm": 0.98,
+    "bias_avrg": 1.15
+   }
+  ],
+  "recent": [
+   {
+    "init": "2026-11-05T18:00:00+00:00",
+    "valid_end": "2026-11-07T18:00:00+00:00",
+    "n": 97683,
+    "obs_mean": 0.29,
+    "obs_max": 5.88,
+    "pad": {
+     "obs": 1.34,
+     "lpmm": 2.22,
+     "avrg": 1.99
+    },
+    "lpmm": {
+     "mean": 0.34,
+     "bias_ratio": 1.18,
+     "ets": {
+      "0.5": 0.35,
+      "1": 0.27,
+      "2": 0.06
+     },
+     "fbias": {
+      "0.5": 1.2,
+      "1": 1.22,
+      "2": 0.92
+     }
+    },
+    "avrg": {
+     "mean": 0.41,
+     "bias_ratio": 1.43,
+     "ets": {
+      "0.5": 0.33,
+      "1": 0.32,
+      "2": 0.15
+     },
+     "fbias": {
+      "0.5": 1.48,
+      "1": 1.52,
+      "2": 2.08
+     }
+    },
+    "regime_fcst": {
+     "name": "NE",
+     "dir": 48,
+     "spd_kt": 12.0,
+     "consistency": 0.77,
+     "n": 8
+    },
+    "regime_anl": {
+     "name": "NE",
+     "dir": 31,
+     "spd_kt": 12.0,
+     "consistency": 0.81,
+     "n": 8
+    },
+    "regime_raob": {
+     "name": "SW",
+     "dir": 260,
+     "spd_kt": 15.3,
+     "consistency": 0.88,
+     "n": 4,
+     "soundings": [
+      "KGSO 06/12Z",
+      "KGSO 06/00Z",
+      "KGSO 07/12Z",
+      "KGSO 07/00Z"
+     ]
+    },
+    "regime": "SW"
+   },
+   {
+    "init": "2026-11-05T12:00:00+00:00",
+    "valid_end": "2026-11-07T12:00:00+00:00",
+    "n": 97683,
+    "obs_mean": 0.29,
+    "obs_max": 5.88,
+    "pad": {
+     "obs": 1.35,
+     "lpmm": 0.47,
+     "avrg": 0.63
+    },
+    "lpmm": {
+     "mean": 0.32,
+     "bias_ratio": 1.1,
+     "ets": {
+      "0.5": 0.33,
+      "1": 0.24,
+      "2": 0.08
+     },
+     "fbias": {
+      "0.5": 1.05,
+      "1": 1.06,
+      "2": 1.26
+     }
+    },
+    "avrg": {
+     "mean": 0.38,
+     "bias_ratio": 1.32,
+     "ets": {
+      "0.5": 0.34,
+      "1": 0.28,
+      "2": 0.09
+     },
+     "fbias": {
+      "0.5": 1.32,
+      "1": 1.29,
+      "2": 1.86
+     }
+    },
+    "regime_fcst": {
+     "name": "NE",
+     "dir": 31,
+     "spd_kt": 12.4,
+     "consistency": 0.8,
+     "n": 8
+    },
+    "regime_anl": {
+     "name": "NE",
+     "dir": 19,
+     "spd_kt": 13.3,
+     "consistency": 0.86,
+     "n": 8
+    },
+    "regime_raob": {
+     "name": "SW",
+     "dir": 248,
+     "spd_kt": 16.6,
+     "consistency": 0.87,
+     "n": 5,
+     "soundings": [
+      "KGSO 05/12Z",
+      "KGSO 06/12Z",
+      "KGSO 06/00Z",
+      "KGSO 07/12Z",
+      "KGSO 07/00Z"
+     ]
+    },
+    "regime": "SW"
+   },
+   {
+    "init": "2026-11-05T06:00:00+00:00",
+    "valid_end": "2026-11-07T06:00:00+00:00",
+    "n": 97683,
+    "obs_mean": 0.3,
+    "obs_max": 5.88,
+    "pad": {
+     "obs": 1.35,
+     "lpmm": 0.21,
+     "avrg": 0.43
+    },
+    "lpmm": {
+     "mean": 0.29,
+     "bias_ratio": 0.95,
+     "ets": {
+      "0.5": 0.29,
+      "1": 0.18,
+      "2": 0.05
+     },
+     "fbias": {
+      "0.5": 0.9,
+      "1": 0.87,
+      "2": 0.53
+     }
+    },
+    "avrg": {
+     "mean": 0.33,
+     "bias_ratio": 1.1,
+     "ets": {
+      "0.5": 0.32,
+      "1": 0.24,
+      "2": 0.04
+     },
+     "fbias": {
+      "0.5": 1.03,
+      "1": 0.95,
+      "2": 0.67
+     }
+    },
+    "regime_fcst": {
+     "name": "NE",
+     "dir": 18,
+     "spd_kt": 14.3,
+     "consistency": 0.87,
+     "n": 8
+    },
+    "regime_anl": {
+     "name": "NE",
+     "dir": 7,
+     "spd_kt": 15.9,
+     "consistency": 0.91,
+     "n": 8
+    },
+    "regime_raob": {
+     "name": "SW",
+     "dir": 239,
+     "spd_kt": 17.5,
+     "consistency": 0.9,
+     "n": 4,
+     "soundings": [
+      "KGSO 05/12Z",
+      "KGSO 06/12Z",
+      "KGSO 06/00Z",
+      "KGSO 07/00Z"
+     ]
+    },
+    "regime": "SW"
+   },
+   {
+    "init": "2026-11-05T00:00:00+00:00",
+    "valid_end": "2026-11-07T00:00:00+00:00",
+    "n": 97683,
+    "obs_mean": 0.34,
+    "obs_max": 8.36,
+    "pad": {
+     "obs": 1.35,
+     "lpmm": 0.27,
+     "avrg": 0.41
+    },
+    "lpmm": {
+     "mean": 0.29,
+     "bias_ratio": 0.87,
+     "ets": {
+      "0.5": 0.29,
+      "1": 0.11,
+      "2": 0.04
+     },
+     "fbias": {
+      "0.5": 0.82,
+      "1": 0.77,
+      "2": 0.65
+     }
+    },
+    "avrg": {
+     "mean": 0.33,
+     "bias_ratio": 0.98,
+     "ets": {
+      "0.5": 0.36,
+      "1": 0.13,
+      "2": 0.02
+     },
+     "fbias": {
+      "0.5": 0.94,
+      "1": 0.9,
+      "2": 0.45
+     }
+    },
+    "regime_fcst": {
+     "name": "NE",
+     "dir": 7,
+     "spd_kt": 16.3,
+     "consistency": 0.9,
+     "n": 8
+    },
+    "regime_anl": {
+     "name": "NW",
+     "dir": 357,
+     "spd_kt": 16.8,
+     "consistency": 0.93,
+     "n": 8
+    },
+    "regime_raob": {
+     "name": "SW",
+     "dir": 230,
+     "spd_kt": 16.7,
+     "consistency": 0.87,
+     "n": 5,
+     "soundings": [
+      "KGSO 05/12Z",
+      "KGSO 05/00Z",
+      "KGSO 06/12Z",
+      "KGSO 06/00Z",
+      "KGSO 07/00Z"
+     ]
+    },
+    "regime": "SW"
+   },
+   {
+    "init": "2026-11-04T18:00:00+00:00",
+    "valid_end": "2026-11-06T18:00:00+00:00",
+    "n": 97683,
+    "obs_mean": 0.36,
+    "obs_max": 8.72,
+    "pad": {
+     "obs": 1.3,
+     "lpmm": 0.92,
+     "avrg": 0.53
+    },
+    "lpmm": {
+     "mean": 0.32,
+     "bias_ratio": 0.89,
+     "ets": {
+      "0.5": 0.23,
+      "1": 0.14,
+      "2": 0.15
+     },
+     "fbias": {
+      "0.5": 0.8,
+      "1": 0.78,
+      "2": 0.79
+     }
+    },
+    "avrg": {
+     "mean": 0.36,
+     "bias_ratio": 0.99,
+     "ets": {
+      "0.5": 0.34,
+      "1": 0.16,
+      "2": 0.15
+     },
+     "fbias": {
+      "0.5": 0.96,
+      "1": 0.81,
+      "2": 0.92
+     }
+    },
+    "regime_fcst": {
+     "name": "NW",
+     "dir": 360,
+     "spd_kt": 18.1,
+     "consistency": 0.95,
+     "n": 8
+    },
+    "regime_anl": {
+     "name": "NW",
+     "dir": 351,
+     "spd_kt": 18.0,
+     "consistency": 0.95,
+     "n": 8
+    },
+    "regime_raob": {
+     "name": "SW",
+     "dir": 222,
+     "spd_kt": 19.4,
+     "consistency": 0.94,
+     "n": 4,
+     "soundings": [
+      "KGSO 05/12Z",
+      "KGSO 05/00Z",
+      "KGSO 06/12Z",
+      "KGSO 06/00Z"
+     ]
+    },
+    "regime": "SW"
+   },
+   {
+    "init": "2026-11-04T06:00:00+00:00",
+    "valid_end": "2026-11-06T06:00:00+00:00",
+    "n": 97683,
+    "obs_mean": 0.29,
+    "obs_max": 10.33,
+    "pad": {
+     "obs": 0.01,
+     "lpmm": 0.01,
+     "avrg": 0.04
+    },
+    "lpmm": {
+     "mean": 0.26,
+     "bias_ratio": 0.9,
+     "ets": {
+      "0.5": 0.37,
+      "1": 0.19,
+      "2": 0.25
+     },
+     "fbias": {
+      "0.5": 0.89,
+      "1": 0.55,
+      "2": 0.58
+     }
+    },
+    "avrg": {
+     "mean": 0.31,
+     "bias_ratio": 1.08,
+     "ets": {
+      "0.5": 0.48,
+      "1": 0.23,
+      "2": 0.24
+     },
+     "fbias": {
+      "0.5": 1.23,
+      "1": 0.68,
+      "2": 0.7
+     }
+    },
+    "regime_fcst": {
+     "name": "NW",
+     "dir": 347,
+     "spd_kt": 17.9,
+     "consistency": 0.95,
+     "n": 8
+    },
+    "regime_anl": {
+     "name": "NW",
+     "dir": 341,
+     "spd_kt": 18.0,
+     "consistency": 0.95,
+     "n": 7
+    },
+    "regime_raob": {
+     "name": "SW",
+     "dir": 207,
+     "spd_kt": 18.5,
+     "consistency": 0.95,
+     "n": 4,
+     "soundings": [
+      "KGSO 04/12Z",
+      "KGSO 05/12Z",
+      "KGSO 05/00Z",
+      "KGSO 06/00Z"
+     ]
+    },
+    "regime": "SW"
+   }
+  ]
+ },
+ "colorscale": {
+  "levels": [
+   0.01,
+   0.1,
+   0.25,
+   0.5,
+   0.75,
+   1.0,
+   1.5,
+   2.0,
+   2.5,
+   3.0,
+   4.0,
+   5.0,
+   6.0,
+   8.0,
+   10.0,
+   12.0,
+   15.0,
+   18.0
+  ],
+  "colors": [
+   "#4fcfcf",
+   "#00ffff",
+   "#00de80",
+   "#00bf00",
+   "#80de00",
+   "#ffff00",
+   "#ff9e00",
+   "#ff0000",
+   "#ff1f80",
+   "#f040ff",
+   "#801fff",
+   "#4040ff",
+   "#1f1f80",
+   "#595959",
+   "#808080",
+   "#dedede",
+   "#edd4ba"
+  ]
+ },
+ "timelines": [
+  {
+   "site": "Fayetteville (KFAY)",
+   "file": "timeline_fayetteville.png"
+  },
+  {
+   "site": "Greensboro/piedmont (asos) (KGSO)",
+   "file": "timeline_greensboro_piedmont.png"
+  },
+  {
+   "site": "Winston-Salem/smith (asos) (KINT)",
+   "file": "timeline_winston_salem_smith.png"
+  },
+  {
+   "site": "Raleigh / Durham (KRDU)",
+   "file": "timeline_raleigh___durham.png"
+  },
+  {
+   "site": "Rocky Mount-Wilson (asos) (KRWI)",
+   "file": "timeline_rocky_mount_wilson.png"
+  },
+  {
+   "site": "Wadesboro (KAFP)",
+   "file": "timeline_wadesboro.png"
+  },
+  {
+   "site": "Burlington-Alamance Reg (asos) (KBUY)",
+   "file": "timeline_burlington_alamance_reg.png"
+  },
+  {
+   "site": "Clinton (KCTZ)",
+   "file": "timeline_clinton.png"
+  },
+  {
+   "site": "Tarboro (KETC)",
+   "file": "timeline_tarboro.png"
+  },
+  {
+   "site": "Lexington Davidson County Airp (KEXX)",
+   "file": "timeline_lexington_davidson_county_airp.png"
+  },
+  {
+   "site": "Fort Bragg/simmons (KFBG)",
+   "file": "timeline_fort_bragg_simmons.png"
+  },
+  {
+   "site": "Seymour-Johnson AFB (KGSB)",
+   "file": "timeline_seymour_johnson_afb.png"
+  },
+  {
+   "site": "Goldsboro-Wayne Muni Arpt (KGWW)",
+   "file": "timeline_goldsboro_wayne_muni_arpt.png"
+  },
+  {
+   "site": "Asheboro Muni Arpt (KHBI)",
+   "file": "timeline_asheboro_muni_arpt.png"
+  },
+  {
+   "site": "Mackall AAF (KHFF)",
+   "file": "timeline_mackall_aaf.png"
+  },
+  {
+   "site": "Henderson-Oxford Arpt (KHNZ)",
+   "file": "timeline_henderson_oxford_arpt.png"
+  },
+  {
+   "site": "Erwin/harnett County Arpt (KHRJ)",
+   "file": "timeline_erwin_harnett_county_arpt.png"
+  },
+  {
+   "site": "Roanoke Rapids (KIXA)",
+   "file": "timeline_roanoke_rapids.png"
+  },
+  {
+   "site": "Smithfield (KJNX)",
+   "file": "timeline_smithfield.png"
+  },
+  {
+   "site": "Louisburg/franklin Cnty Arpt (KLHZ)",
+   "file": "timeline_louisburg_franklin_cnty_arpt.png"
+  },
+  {
+   "site": "Laurinburg-Maxton Arpt (asos) (KMEB)",
+   "file": "timeline_laurinburg_maxton_arpt.png"
+  },
+  {
+   "site": "Pope AFB (KPOB)",
+   "file": "timeline_pope_afb.png"
+  },
+  {
+   "site": "Rockingham (KRCZ)",
+   "file": "timeline_rockingham.png"
+  },
+  {
+   "site": "Siler City (KSCR)",
+   "file": "timeline_siler_city.png"
+  },
+  {
+   "site": "Southern Pines AWOS (KSOP)",
+   "file": "timeline_southern_pines_awos.png"
+  },
+  {
+   "site": "Roxboro (KTDF)",
+   "file": "timeline_roxboro.png"
+  },
+  {
+   "site": "Durham - Duke North Heliport (KTQV)",
+   "file": "timeline_durham___duke_north_heliport.png"
+  },
+  {
+   "site": "Sanford - Lee County (KTTA)",
+   "file": "timeline_sanford___lee_county.png"
+  },
+  {
+   "site": "Albemarle (KVUJ)",
+   "file": "timeline_albemarle.png"
+  },
+  {
+   "site": "Mount Olive (KW40)",
+   "file": "timeline_mount_olive.png"
+  }
+ ],
+ "diagnostics": {
+  "eas": {
+   "f06": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f12": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f18": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f42": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f30": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f24": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f36": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   },
+   "f48": {
+    "thresholds_in": [
+     0.01,
+     0.25,
+     0.5,
+     1.0,
+     2.0,
+     3.0
+    ],
+    "matched": [
+     0.25,
+     0.5,
+     1.0,
+     2.0
+    ]
+   }
+  },
+  "ffri": {
+   "f06": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f24": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f30": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f12": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f18": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f36": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f42": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   },
+   "f48": {
+    "ari_years": [
+     1,
+     2,
+     5,
+     10,
+     25,
+     50,
+     100
+    ],
+    "ffg": true
+   }
+  }
+ }
+}
