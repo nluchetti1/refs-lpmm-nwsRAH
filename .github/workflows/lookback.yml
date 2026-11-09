@@ -4,17 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       start:
-        description: 'Window start, YYYYMMDDHH UTC'
-        required: true
+        description: 'Window start, YYYYMMDDHH UTC (blank if rebuilding all stale cases)'
+        required: false
       end:
         description: 'Window end, YYYYMMDDHH UTC (3-72 h after start)'
-        required: true
+        required: false
       title:
         description: 'Title shown on the site (leave blank when rebuilding to keep the old one)'
         required: false
         default: ''
       rebuild:
         description: 'Rebuild if this window already exists'
+        type: boolean
+        default: false
+      rebuild_all:
+        description: 'Rebuild all stale cases (ignores start/end; can take an hour or more)'
         type: boolean
         default: false
 
@@ -25,7 +29,7 @@ concurrency:
 jobs:
   case:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 330
     permissions:
       contents: write
 
@@ -64,7 +68,13 @@ jobs:
           END: ${{ inputs.end }}
           TITLE: ${{ inputs.title }}
           REBUILD: ${{ inputs.rebuild }}
-        run: python lookback.py --start "$START" --end "$END" --title "$TITLE" $([ "$REBUILD" = "true" ] && echo --rebuild)
+          REBUILD_ALL: ${{ inputs.rebuild_all }}
+        run: |
+          if [ "$REBUILD_ALL" = "true" ]; then
+            python lookback.py --rebuild-stale
+          else
+            python lookback.py --start "$START" --end "$END" --title "$TITLE" $([ "$REBUILD" = "true" ] && echo --rebuild)
+          fi
 
       - name: Prepare data branch
         run: rm -rf data/.git
