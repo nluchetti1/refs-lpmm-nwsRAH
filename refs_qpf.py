@@ -458,11 +458,32 @@ def _log_inventory(tag, msgs):
     print(f"[inventory {tag}] " + "; ".join(parts))
 
 
+_GEOM_KEYS = ("gridType", "Ni", "Nj", "Nx", "Ny",
+              "latitudeOfFirstGridPointInDegrees", "longitudeOfFirstGridPointInDegrees",
+              "latitudeOfLastGridPointInDegrees", "longitudeOfLastGridPointInDegrees",
+              "iDirectionIncrementInDegrees", "jDirectionIncrementInDegrees",
+              "iScansNegatively", "jScansPositively", "LoVInDegrees", "Latin1InDegrees", "Latin2InDegrees",
+              "DxInMetres", "DyInMetres")
+
+
+def _grid_signature(msg):
+    """Everything that fixes where each value sits. Size + first latitude alone is NOT enough:
+    GFS (lon 0..359.75) and ECMWF open data (lon -180..179.75) share 1440x721 and lat 90, and a
+    crop cached from one was being applied to the other, 180 degrees away."""
+    sig = []
+    for k in _GEOM_KEYS:
+        try:
+            v = msg[k]
+            sig.append(round(float(v), 4) if isinstance(v, (int, float)) else str(v))
+        except Exception:
+            sig.append(None)
+    return tuple(sig)
+
+
 def make_crop(msg, extent=None, pad=CROP_PAD):
     """Crop description for msg's grid: row/col slices plus cropped lats/lons (lon in -180..180)."""
     w, e, s, n = extent or EXTENT
-    key = (msg["Ni"], msg["Nj"], str(msg["gridType"]), round(float(msg["latitudeOfFirstGridPointInDegrees"]), 3),
-           w, e, s, n)
+    key = (_grid_signature(msg), w, e, s, n)
     if key in _CROPS:
         return _CROPS[key]
     lats, lons = msg.latlons()

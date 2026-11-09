@@ -737,9 +737,9 @@
         ${meta.repo ? `<button class="btn" id="cs-del" title="Opens a GitHub issue; only the repository owner's request is acted on">Delete for everyone…</button>` : ""}
       </div>
       <h3 class="case-head">${esc(c.title)}</h3>
-      ${(c.ecmwf_reader || 1) < 2 && c.rows.some(r => r.model === "AIFS") ? `<p class="note" style="color:var(--warn);margin:0 0 8px">
-        Built before the 3 Nov AIFS fix: AIFS values here cover only the last 6 h of the window (about 4× too low).
-        Rebuild it from Actions → Look back with <strong>rebuild</strong> checked.</p>` : ""}
+      ${(c.ecmwf_reader || 1) < 3 && c.rows.some(r => ["IFS", "AIFS", "ENS"].includes(String(r.model).split("_")[0])) ? `<p class="note" style="color:var(--warn);margin:0 0 8px">
+        The ECMWF IFS, AIFS and ENS panels in this case are wrong: an earlier version read them from the opposite side of the globe.
+        Rebuild from Actions → Look back with <strong>rebuild all stale cases</strong> checked.</p>` : ""}
       <p class="case-sub">${dayUTC(c.start)} to ${dayUTC(c.end)} (${c.hours} h). MRMS max <strong>${inch(c.obs.max)}</strong>
         ${c.obs.near_km < 3 ? "at" : `${c.obs.near_km} km from`} ${c.obs.near}${refs0 && refs0.near_event_max != null ? `; the shortest-lead REFS LPMM reached ${inch(refs0.near_event_max)} within ${c.event_radius_km} km` : ""}.
         ○ marks the observed max. Coarse models are scored against MRMS averaged over their grid box (the 25-km-mean MRMS max was ${inch(c.obs.area_max)}),

@@ -60,8 +60,8 @@ MIN_HOURS, MAX_HOURS = 3, 72
 EVENT_RADIUS_KM = 20.0
 CASE_THRESHOLDS = [1.0, 2.0, 4.0, 8.0]
 EVENT_COVERAGE = 0.05            # event threshold = highest one MRMS exceeds over >= 5% of the domain
-SUMMARY_VERSION = 3
-ECMWF_READER_VERSION = 2          # 2 = step-range aware (fixes AIFS 6-h buckets)
+SUMMARY_VERSION = 4
+ECMWF_READER_VERSION = 3          # 2 = step-range aware; 3 = correct ECMWF longitudes (crop-cache fix)
 WORKERS = 8
 
 # key: display, color, cycle spacing (h), max fhr, output step (h) as fn of fhr, leads (h before start)
@@ -285,10 +285,24 @@ def ecmwf_window(model, stream, typ, init, f0, f1):
     return tot, crop, f"{bucket}-h buckets x{(f1 - f0) // bucket}"
 
 
+CHECK_POINTS = {"Melbourne": (28.10, -80.65), "Orlando": (28.43, -81.31), "Tampa": (27.98, -82.53)}
+
+
+def _point_report(v_mm, crop):
+    out = []
+    for name, (la, lo) in CHECK_POINTS.items():
+        d = R.dist_km(crop["lats"], crop["lons"], la, lo)
+        j, i = np.unravel_index(np.argmin(d), d.shape)
+        out.append(f"{name} {v_mm[j, i] * R.MM_TO_IN:.2f}\"")
+    j, i = np.unravel_index(np.argmax(np.where(R.in_view(crop["lats"], crop["lons"]), v_mm, -1)), v_mm.shape)
+    out.append(f"max {v_mm[j, i] * R.MM_TO_IN:.2f}\" at {crop['lats'][j, i]:.2f}N {abs(crop['lons'][j, i]):.2f}W")
+    return ", ".join(out)
+
+
 def ecmwf_det(model, init, f0, f1):
     tot, crop, how = ecmwf_window(model, "oper", "fc", init, f0, f1)
-    print(f"    ECMWF {model} {init:%d/%HZ} f{f0}-f{f1}: {how}")
     v = tot[sorted(tot)[0]]
+    print(f"    ECMWF {model} {init:%d/%HZ} f{f0}-f{f1}: {how} | {_point_report(v, crop)}")
     return np.clip(v * R.MM_TO_IN, 0, None), crop["lats"], crop["lons"]
 
 
@@ -720,6 +734,23 @@ def delete_case(case_id):
     shutil.rmtree(d)
 
 
+def rebuild_stale():
+    """Rebuild every case whose ECMWF panels came from an older reader (keeps titles and requesters)."""
+    todo = []
+    for cj in glob.glob(os.path.join(R.CASES_DIR, "*", "case.json")):
+        c = R.load_json(cj, {})
+        has_ec = any(str(r.get("model", "")).split("_")[0] in ("IFS", "AIFS", "ENS") for r in c.get("rows", []))
+        if has_ec and (c.get("ecmwf_reader") or 1) < ECMWF_READER_VERSION:
+            todo.append(c)
+    print(f"[rebuild] {len(todo)} case(s) with stale ECMWF data")
+    for c in sorted(todo, key=lambda c: c["end"]):
+        try:
+            build_case(start=datetime.fromisoformat(c["start"]), end=datetime.fromisoformat(c["end"]),
+                       title=c.get("title"), auto=bool(c.get("auto")), requested_by=c.get("requested_by"), rebuild=True)
+        except Exception as e:
+            print(f"[rebuild] {c['id']} failed: {e}")
+
+
 def prune_auto(keep):
     autos = sorted(glob.glob(os.path.join(R.CASES_DIR, "auto-*")))
     for d in (autos[:-keep] if keep else autos):
@@ -753,12 +784,20 @@ def parse_time(s):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--start", help="window start, YYYYMMDDHH UTC")
-    ap.add_argument("--end", required=True, help="window end, YYYYMMDDHH UTC")
+    ap.add_argument("--end", help="window end, YYYYMMDDHH UTC")
+    ap.add_argument("--rebuild-stale", action="store_true", help="rebuild all cases with outdated ECMWF data")
     ap.add_argument("--hours", type=int, help="alternative to --start")
     ap.add_argument("--title", default="")
     ap.add_argument("--no-publish", action="store_true")
     ap.add_argument("--rebuild", action="store_true", help="redo an existing case (keeps its title)")
     a = ap.parse_args()
+    if a.rebuild_stale:
+        R.init_sites(); rebuild_stale()
+        if not a.no_publish:
+            republish()
+        raise SystemExit(0)
+    if not a.end:
+        ap.error("--end is required unless --rebuild-stale")
     end = parse_time(a.end)
     start = parse_time(a.start) if a.start else end - timedelta(hours=a.hours or 24)
     build_case(start=start, end=end, title=a.title or None, rebuild=a.rebuild)
