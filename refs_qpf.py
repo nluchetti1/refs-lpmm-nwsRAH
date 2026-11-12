@@ -110,6 +110,40 @@ RAOB_HOURS = [10, 12, 22, 0]        # tried per day inside the window
 RAOB_BACKFILL_PER_RUN = 4
 REGIME_MIN_N = 5                    # runs needed before showing a by-regime comparison
 
+# ---- flash flood guidance (WPC CONUS mosaic of RFC gridded FFG, 5 km, 00/06/12/18Z, posted ~5.5 h later)
+FFG_URLS = ["https://ftp.wpc.ncep.noaa.gov/workoff/ffg/5kmffg_{t:%Y%m%d%H}.grb2",
+            "https://ftp-wpc.ncep.noaa.gov/workoff/ffg/5kmffg_{t:%Y%m%d%H}.grb2"]
+FFG_DURATIONS = [1, 3, 6]
+FFG_LOOKBACK_ISSUANCES = 12         # search back up to 72 h for the newest file
+FFG_MAX_DIST_KM = 6.0               # REFS points farther than this from an FFG cell get no ratio (offshore)
+PCT_LEVS = [10, 25, 50, 75, 100, 150, 200, 300, 500]   # % of FFG; 100 = QPF reaches guidance
+# Every bin must stand out from the dark land (#1c2a36) and ocean: the old 25-50% bin (#2b4a5f)
+# was nearly the land colour, so low ratios looked unshaded. Cool/muted below 100%, warm above.
+RCOLORS = ["#7f97a6", "#4fb0d0", "#4fd19a", "#c8e45a",      # 10-25, 25-50, 50-75, 75-100
+           "#f5c542", "#f08a2a", "#e0402a", "#c8207a",      # 100-150, 150-200, 200-300, 300-500
+           "#8a2ad0"]                                        # > 500
+FFG_FRAME_STEP = {1: 1, 3: 3, 6: 6}  # frame spacing (h) per duration: hourly 1-h, 3-h blocks, 6-h blocks
+
+# ---- MRMS FLASH (EF5 hydrologic models + QPE ratios on the 0.01 deg MRMS grid, every 10 min)
+FLASH_LATEST = "https://mrms.ncep.noaa.gov/2D/FLASH/{p}/MRMS_FLASH_{p}.latest.grib2.gz"
+FLASH_NCEP = "https://mrms.ncep.noaa.gov/2D/FLASH/{p}/MRMS_FLASH_{p}_00.00_{t:%Y%m%d-%H%M}00.grib2.gz"
+FLASH_AWS = ["https://noaa-mrms-pds.s3.amazonaws.com/CONUS/FLASH_{p}_00.00/{t:%Y%m%d}/MRMS_FLASH_{p}_00.00_{t:%Y%m%d-%H%M}00.grib2.gz",
+             "https://noaa-mrms-pds.s3.amazonaws.com/CONUS/{p}_00.00/{t:%Y%m%d}/MRMS_FLASH_{p}_00.00_{t:%Y%m%d-%H%M}00.grib2.gz"]
+FLASH_NBHD_KM = 5.0
+FLASH_LOOP_SCANS = 12               # 10-min scans in the FLASH loop (12 = last 2 h, ending at the newest)
+FLASH_LOOP_PRODUCTS = ["QPE_FFGMAX", "CREST_MAXUNITSTREAMFLOW"]                 # streamflow lives on channels: report the max within this radius of a site
+# thresholds: CREST unit streamflow 2-2.5 (flooding likely) and 6 (significant), QPE/FFG 100% (NWS MEG FLASH study)
+FLASH_PRODUCTS = {
+    "CREST_MAXUNITSTREAMFLOW": dict(label="CREST max unit streamflow", unit="m³ s⁻¹ km⁻²", short="q",
+                                    levels=[0.5, 1, 2, 2.5, 4, 6, 8, 12, 20], marks=[2.0, 6.0], nbhd=True, cmap="YlOrRd"),
+    "QPE_FFGMAX": dict(label="QPE as % of FFG, max of 1/3/6 h", unit="% of FFG", short="QPE % of FFG",
+                       levels=[25, 50, 75, 100, 125, 150, 200, 300, 500], marks=[100.0], nbhd=True, cmap="magma_r", pct=True),
+    "QPE_ARIMAX": dict(label="QPE recurrence interval, max", unit="yr", short="ARI",
+                       levels=[1, 2, 5, 10, 25, 50, 100, 200, 500, 1000], marks=[100.0], nbhd=True, cmap="PuRd"),
+    "CREST_MAXSOILSAT": dict(label="CREST max soil saturation", unit="%", short="soil",
+                             levels=[40, 50, 60, 70, 80, 90, 95, 100], marks=[], nbhd=False, cmap="BrBG"),
+}
+
 AUTO_DAILY_CASE = True              # build a 24-h look-back on each 12Z cycle
 AUTO_CASES_KEPT = 14
 
@@ -662,6 +696,13 @@ def fetch_mrms_raw(hours, valid_end, extent=None, pad=1.0):
     except FileNotFoundError as e:
         print(f"[mrms] {hours}H {valid_end:%Y%m%d %HZ} unavailable: {e}")
         return None
+    raw = decode_mrms_grid(path, extent, pad)
+    print(f"[mrms] {hours}H {valid_end:%Y%m%d %HZ}: cropped {raw['vals'].shape}, max {np.nanmax(np.where(raw['vals'] >= 0, raw['vals'], np.nan)) * MM_TO_IN:.2f}\"")
+    return raw
+
+
+def decode_mrms_grid(path, extent=None, pad=1.0):
+    """Any MRMS 0.01 deg CONUS GRIB2 (QPE, FLASH ...) cropped to extent+pad; deletes the file."""
     try:
         with pygrib.open(path) as g:
             m = g.message(1)
@@ -671,6 +712,10 @@ def fetch_mrms_raw(hours, valid_end, extent=None, pad=1.0):
             dj = float(m["jDirectionIncrementInDegrees"])
             di = float(m["iDirectionIncrementInDegrees"])
             jpos = int(m["jScansPositively"])
+            try:
+                valid = datetime.strptime(f"{m['dataDate']}{int(m['dataTime']):04d}", "%Y%m%d%H%M").replace(tzinfo=timezone.utc)
+            except Exception:
+                valid = None
     finally:
         os.remove(path)
     lon0 = lon0 - 360 if lon0 > 180 else lon0
@@ -685,8 +730,7 @@ def fetch_mrms_raw(hours, valid_end, extent=None, pad=1.0):
     sub = vals[r0:r1 + 1, c0:c1 + 1]
     lat0c = lat0 + r0 * dj if jpos else lat0 - r0 * dj
     lon0c = lon0 + c0 * di
-    print(f"[mrms] {hours}H {valid_end:%Y%m%d %HZ}: cropped {sub.shape}, max {np.nanmax(np.where(sub >= 0, sub, np.nan)) * MM_TO_IN:.2f}\"")
-    return dict(vals=sub, lat0=lat0c, lon0=lon0c, dj=dj, di=di, jpos=jpos)
+    return dict(vals=sub, lat0=lat0c, lon0=lon0c, dj=dj, di=di, jpos=jpos, valid=valid)
 
 
 MRMS_NATIVE_HOURS = (1, 3, 6, 12, 24, 48, 72)
@@ -1039,9 +1083,45 @@ def annotate_max(ax, field, unit='"', fmt="{:.2f}", floor=0.1, lats=None, lons=N
     masked = np.where(in_view(lats, lons) & np.isfinite(field), field, -np.inf)
     j, i = np.unravel_index(np.argmax(masked), masked.shape)
     if masked[j, i] >= floor:
-        ax.plot(lons[j, i], lats[j, i], "x", color="#ffffff", ms=6, mew=1.4, transform=ccrs.PlateCarree(), zorder=7)
-        ax.text(lons[j, i], lats[j, i] - 0.12, fmt.format(field[j, i]) + unit, fontsize=8, ha="center", va="top",
-                color="#ffffff", transform=ccrs.PlateCarree(), zorder=7)
+        m, = ax.plot(lons[j, i], lats[j, i], "x", color="#ffffff", ms=6, mew=1.4, transform=ccrs.PlateCarree(), zorder=7)
+        t = ax.text(lons[j, i], lats[j, i] - 0.12, fmt.format(field[j, i]) + unit, fontsize=8, ha="center", va="top",
+                    color="#ffffff", transform=ccrs.PlateCarree(), zorder=7)
+        return [m, t]
+    return []
+
+
+class FrameRenderer:
+    """One figure + basemap reused for a whole loop; only the data layer changes per frame."""
+    def __init__(self, figsize=(8.4, 9)):
+        self.fig = plt.figure(figsize=figsize)
+        self.ax = self.fig.add_axes([0.03, 0.15, 0.94, 0.75], projection=ccrs.PlateCarree())
+        add_basemap(self.ax)
+        self.t1 = self.fig.text(0.03, 0.955, "", fontsize=14, fontweight="bold")
+        self.t2 = self.fig.text(0.03, 0.925, "", fontsize=10, color=MUTED)
+        self.has_cbar = False
+        self.dyn = []
+
+    def frame(self, draw, title, subtitle, path, cbar_label, ticks, extend="max", dpi=105):
+        for a in self.dyn:
+            try:
+                a.remove()
+            except Exception:
+                pass
+        mappable, extra = draw(self.ax)
+        self.dyn = [mappable] + list(extra)
+        if not self.has_cbar:
+            cax = self.fig.add_axes([0.08, 0.07, 0.84, 0.025])
+            cb = self.fig.colorbar(mappable, cax=cax, orientation="horizontal", ticks=ticks, extend=extend)
+            cb.ax.set_xticklabels([f"{t:g}" for t in ticks], fontsize=8)
+            cb.set_label(cbar_label, fontsize=10, color=TEXT)
+            cb.outline.set_edgecolor(LINE)
+            self.has_cbar = True
+        self.t1.set_text(title)
+        self.t2.set_text(subtitle)
+        self.fig.savefig(path, dpi=dpi)
+
+    def close(self):
+        plt.close(self.fig)
 
 
 def savefig(fig, name, dpi, out_dir=None):
@@ -1051,6 +1131,324 @@ def savefig(fig, name, dpi, out_dir=None):
 
 def fmt_init(t):
     return t.strftime("%a %d %b %HZ")
+
+# =============================================================================
+# 8a. MRMS FLASH
+# =============================================================================
+def raw_native(raw):
+    """(values with NaN for missing, lats, lons) on the cropped 0.01 deg grid."""
+    nj, ni = raw["vals"].shape
+    lat1 = raw["lat0"] + np.arange(nj) * raw["dj"] * (1 if raw["jpos"] else -1)
+    lon1 = raw["lon0"] + np.arange(ni) * raw["di"]
+    lons, lats = np.meshgrid(lon1, lat1)
+    return np.where(raw["vals"] >= 0, raw["vals"], np.nan), lats, lons
+
+
+def raw_near_max(vals, raw, lat, lon, km):
+    r = int(round(((lat - raw["lat0"]) if raw["jpos"] else (raw["lat0"] - lat)) / raw["dj"]))
+    c = int(round((lon - raw["lon0"]) / raw["di"]))
+    n = max(0, int(round(km / 1.1)))
+    box = vals[max(r - n, 0):r + n + 1, max(c - n, 0):c + n + 1]
+    return float(np.nanmax(box)) if box.size and np.isfinite(box).any() else None
+
+
+def fetch_flash(product, t=None):
+    """One FLASH grid: the latest file, or the one valid at t (NCEP while fresh, then AWS)."""
+    if t is None:
+        urls = [FLASH_LATEST.format(p=product)]
+    else:
+        urls = ([FLASH_NCEP.format(p=product, t=t)] if utcnow() - t < timedelta(hours=24) else []) + \
+               [u.format(p=product, t=t) for u in FLASH_AWS]
+    try:
+        raw = decode_mrms_grid(download_any(urls, gunzip=True))
+    except Exception as e:
+        return None
+    v = raw["vals"]
+    if FLASH_PRODUCTS[product].get("pct"):
+        pos = v[v > 0]
+        if pos.size and np.percentile(pos, 99) <= 5:          # stored as a fraction -> percent
+            raw["vals"] = np.where(v >= 0, v * 100.0, v)
+            raw["scaled"] = "fraction->%"
+    return raw
+
+
+def flash_site_values(raws):
+    out = {}
+    for name, (la, lo, _) in SITES.items():
+        per = {}
+        for p, raw in raws.items():
+            vals, _, _ = raw_native(raw)
+            km = FLASH_NBHD_KM if FLASH_PRODUCTS[p]["nbhd"] else 0.6
+            v = raw_near_max(vals, raw, la, lo, km)
+            if v is not None:
+                per[p] = round(v, 2)
+        out[name] = per
+    return out
+
+
+def plot_flash(raws, suptitle, out_path, times=None):
+    prods = [p for p in FLASH_PRODUCTS if p in raws]
+    if not prods:
+        return False
+    fig, axs = plt.subplots(2, 2, figsize=(12, 13.2), subplot_kw={"projection": ccrs.PlateCarree()})
+    fig.subplots_adjust(left=0.02, right=0.98, bottom=0.08, top=0.9, wspace=0.05, hspace=0.3)
+    bars = []
+    for ax, p in zip(axs.flat, list(prods) + [None] * (4 - len(prods))):
+        if p is None:
+            ax.set_visible(False); continue
+        cfg = FLASH_PRODUCTS[p]
+        vals, lats, lons = raw_native(raws[p])
+        add_basemap(ax, labels=(p == prods[0]))
+        lev = cfg["levels"]
+        cm = mcolors.ListedColormap(plt.get_cmap(cfg["cmap"])(np.linspace(0.12, 1, len(lev) - 1)))
+        cm.set_over(plt.get_cmap(cfg["cmap"])(1.0))
+        nm = mcolors.BoundaryNorm(lev, cm.N)
+        pm = ax.pcolormesh(lons, lats, np.ma.masked_less(np.ma.masked_invalid(vals), lev[0]), cmap=cm, norm=nm,
+                           transform=ccrs.PlateCarree(), zorder=2, shading="nearest")
+        for k, mk in enumerate(cfg["marks"]):
+            if np.nanmax(vals) >= mk:
+                ax.contour(lons, lats, np.nan_to_num(vals), [mk], colors="#ffffff", linewidths=0.7 + 0.7 * k,
+                           transform=ccrs.PlateCarree(), zorder=3)
+        annotate_max(ax, np.nan_to_num(vals), unit="", fmt="{:.1f}", floor=lev[0], lats=lats, lons=lons)
+        when = f"  ·  {times[p]:%d/%H%MZ}" if times and times.get(p) else ""
+        ax.set_title(cfg["label"] + when, fontsize=11, fontweight="bold")
+        bars.append((ax, pm, cfg))
+    fig.canvas.draw()                                   # cartopy settles panel boxes only at draw time
+    for ax, pm, cfg in bars:
+        lev = cfg["levels"]
+        pos = ax.get_position()
+        cax = fig.add_axes([pos.x0 + 0.02, pos.y0 - 0.032, pos.width - 0.04, 0.011])
+        cb = fig.colorbar(pm, cax=cax, orientation="horizontal", ticks=lev, extend="max")
+        cb.ax.set_xticklabels([f"{t:g}" for t in lev], fontsize=7.5)
+        marks = f"  ·  white = {', '.join(f'{m:g}' for m in cfg['marks'])}" if cfg["marks"] else ""
+        cb.set_label(cfg["unit"] + marks, fontsize=9, color=TEXT)
+        cb.outline.set_edgecolor(LINE)
+    fig.suptitle(suptitle, fontsize=14, fontweight="bold", y=0.97)
+    fig.savefig(out_path, dpi=120)
+    plt.close(fig)
+    return True
+
+
+def build_flash_loop(out_dir, latest_raws, times):
+    """The last FLASH_LOOP_SCANS 10-min scans (ending at the newest) for each loop product."""
+    out = {}
+    for p in FLASH_LOOP_PRODUCTS:
+        if p not in latest_raws or not times.get(p):
+            continue
+        t0 = times[p]
+        scan_times = [t0 - timedelta(minutes=10 * k) for k in range(FLASH_LOOP_SCANS - 1, 0, -1)]
+        with ThreadPoolExecutor(MAX_WORKERS) as ex:
+            got = list(ex.map(lambda t: (t, fetch_flash(p, t)), scan_times))
+        seq = [(t, r) for t, r in got if r is not None] + [(t0, latest_raws[p])]
+        cfg = FLASH_PRODUCTS[p]
+        lev = cfg["levels"]
+        cm = mcolors.ListedColormap(plt.get_cmap(cfg["cmap"])(np.linspace(0.12, 1, len(lev) - 1)))
+        cm.set_over(plt.get_cmap(cfg["cmap"])(1.0))
+        nm = mcolors.BoundaryNorm(lev, cm.N)
+        fr, frames = FrameRenderer(), []
+        for n, (t, raw) in enumerate(seq, start=1):
+            vals, lats, lons = raw_native(raw)
+            def draw(ax, vals=vals, lats=lats, lons=lons):
+                m = ax.pcolormesh(lons, lats, np.ma.masked_less(np.ma.masked_invalid(vals), lev[0]), cmap=cm, norm=nm,
+                                  transform=ccrs.PlateCarree(), zorder=2, shading="nearest")
+                extra = []
+                for k, mk in enumerate(cfg["marks"]):
+                    if np.nanmax(np.nan_to_num(vals)) >= mk:
+                        extra.append(ax.contour(lons, lats, np.nan_to_num(vals), [mk], colors="#ffffff",
+                                                linewidths=0.7 + 0.7 * k, transform=ccrs.PlateCarree(), zorder=3))
+                extra += annotate_max(ax, np.nan_to_num(vals), unit="%" if cfg.get("pct") else "",
+                                      fmt="{:.0f}" if cfg.get("pct") else "{:.1f}", floor=lev[0], lats=lats, lons=lons)
+                return m, extra
+            fname = f"flash_{p.lower()}_{n:02d}.png"
+            marks = f"  ·  white = {', '.join(f'{m:g}' for m in cfg['marks'])}" if cfg["marks"] else ""
+            fr.frame(draw, f"MRMS FLASH {cfg['label']}  ·  {t:%H%MZ}",
+                     f"Scan {n} of {len(seq)}  ·  {t:%a %d %b %H%MZ}  ·  observed (radar QPE)",
+                     os.path.join(out_dir, fname), cfg["unit"] + marks, lev)
+            frames.append({"file": fname, "start": t.isoformat(), "end": t.isoformat(), "fhr": f"{t:%H%MZ}",
+                           "label": f"{t:%H%MZ} ({len(seq) - n} scan{'s' if len(seq) - n != 1 else ''} ago)" if n < len(seq) else f"{t:%H%MZ} (latest)"})
+        fr.close()
+        out[p] = frames
+        print(f"[flash] loop {p}: {len(frames)} scans")
+    return out
+
+
+def build_flash_now(out_dir):
+    """Latest FLASH snapshot: flash.png plus a meta block with site values."""
+    raws = {p: r for p, r in ((p, fetch_flash(p)) for p in FLASH_PRODUCTS) if r is not None}
+    if not raws:
+        print("[flash] no FLASH products available")
+        return None
+    times = {p: r.get("valid") for p, r in raws.items()}
+    newest = max(t for t in times.values() if t)
+    for p, r in raws.items():
+        print(f"[flash] {p}: valid {r.get('valid')}, max {np.nanmax(raw_native(r)[0]):.2f}{' (' + r['scaled'] + ')' if r.get('scaled') else ''}")
+    plot_flash(raws, f"MRMS FLASH, latest  ·  {newest:%a %d %b %H%MZ}", os.path.join(out_dir, "flash.png"), times)
+    loops = optional("flash loop", build_flash_loop, out_dir, raws, times) or {}
+    return {"valid": newest.isoformat(), "sites": flash_site_values(raws), "frames": loops,
+            "products": {p: {"label": c["label"], "unit": c["unit"], "short": c["short"], "marks": c["marks"]}
+                         for p, c in FLASH_PRODUCTS.items() if p in raws}}
+
+
+# =============================================================================
+# 8b. FLASH FLOOD GUIDANCE
+# =============================================================================
+def _ffg_duration(msg, k):
+    """Duration (h) of an FFG record: from its step range, else from message order (1, 3, 6, 12, 24)."""
+    a, b = _step_range(msg)
+    if b and (a is not None) and b - a in (1, 3, 6, 12, 24):
+        return b - a
+    try:
+        L = int(msg["lengthOfTimeRange"])
+        if L in (1, 3, 6, 12, 24):
+            return L
+    except Exception:
+        pass
+    return (1, 3, 6, 12, 24)[k] if k < 5 else None
+
+
+def find_ffg(latest):
+    """Newest FFG issuance at or before the REFS cycle. Returns (issue_time, path) or (None, None)."""
+    for k in range(FFG_LOOKBACK_ISSUANCES):
+        t = cycle_floor(latest) - timedelta(hours=6 * k)
+        try:
+            return t, download_any([u.format(t=t) for u in FFG_URLS])
+        except FileNotFoundError:
+            continue
+    print("[ffg] no FFG file found in the last 72 h")
+    return None, None
+
+
+def read_ffg(path):
+    """{duration_h: FFG (in) on the REFS crop grid, NaN offshore / missing}."""
+    from scipy.spatial import cKDTree
+    out, inv = {}, []
+    with pygrib.open(path) as g:
+        msgs = list(g)
+    for k, m in enumerate(msgs):
+        dur = _ffg_duration(m, k)
+        inv.append(f"#{m.messagenumber} {getattr(m, 'shortName', '?')} d{m.discipline}/c{m.parameterCategory}/"
+                   f"n{m.parameterNumber} step {_step_range(m)} -> {dur} h, units {getattr(m, 'units', '?')}")
+        if dur not in FFG_DURATIONS or dur in out:
+            continue
+        crop = make_crop(m)
+        vals = np.ma.filled(m.values.astype(np.float64), np.nan)[crop["rows"], crop["cols"]]
+        vals = np.where((vals > 0) & (vals < 1e4), vals, np.nan)
+        out[dur] = (vals, crop)
+    print("[ffg inventory] " + "; ".join(inv))
+    if not out:
+        raise ValueError("no 1/3/6-h FFG records recognised")
+    # units: FFG is normally mm; a domain median above 15 can only be mm (15 in of 1-h FFG is not physical)
+    med = np.nanmedian(np.concatenate([v.ravel() for v, _ in out.values()]))
+    scale = MM_TO_IN if med > 15 else 1.0
+    print(f"[ffg] median {med:.1f} -> treating as {'mm' if scale != 1 else 'inches'}")
+    res = {}
+    for dur, (vals, crop) in out.items():
+        def xyz(la, lo):
+            la, lo = np.radians(la), np.radians(lo)
+            return np.c_[np.cos(la).ravel() * np.cos(lo).ravel(), np.cos(la).ravel() * np.sin(lo).ravel(), np.sin(la).ravel()]
+        ok = np.isfinite(vals).ravel()
+        tree = cKDTree(xyz(crop["lats"], crop["lons"])[ok])
+        d, idx = tree.query(xyz(_GRID["lats"], _GRID["lons"]))
+        f = vals.ravel()[ok][idx] * scale
+        f[d * 6371.0 > FFG_MAX_DIST_KM] = np.nan
+        res[dur] = f.reshape(_GRID["lats"].shape).astype(np.float32)
+    return res
+
+
+def ffg_ratios(hourly, ffg, valid_start):
+    """Per duration: max over the run of (rolling QPF / FFG), the QPF at that time, and when it ends."""
+    c = np.concatenate([np.zeros((1,) + hourly.shape[1:], np.float32), np.cumsum(hourly, axis=0)])
+    out = {}
+    for dur, f in ffg.items():
+        if dur > hourly.shape[0]:
+            continue
+        roll = c[dur:] - c[:-dur]                                   # roll[t] = QPF over hours t+1..t+dur
+        with np.errstate(invalid="ignore", divide="ignore"):
+            r = roll / f[None]
+        r = np.where(np.isfinite(r), r, -1)
+        t = np.argmax(r, axis=0)
+        rmax = np.take_along_axis(r, t[None], 0)[0]
+        out[dur] = {"ratio": np.where(rmax >= 0, rmax, np.nan), "end_hour": t + dur,
+                    "qpf": np.take_along_axis(roll, t[None], 0)[0]}
+    return out
+
+
+def plot_ffg(ffg, ratios, init, ffg_time, valid_txt):
+    durs = [d for d in FFG_DURATIONS if d in ratios]
+    fig, axs = plt.subplots(2, len(durs), figsize=(5.4 * len(durs), 12.4),
+                            subplot_kw={"projection": ccrs.PlateCarree()}, squeeze=False)
+    fig.subplots_adjust(left=0.02, right=0.98, bottom=0.1, top=0.88, wspace=0.04, hspace=0.32)
+    flevs = [0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8]
+    fcm = mcolors.ListedColormap(plt.get_cmap("YlGnBu")(np.linspace(0.15, 1, len(flevs) - 1)))
+    rcm = mcolors.ListedColormap(RCOLORS[:len(PCT_LEVS) - 1]); rcm.set_over(RCOLORS[-1])
+    rnm = mcolors.BoundaryNorm(PCT_LEVS, rcm.N)
+    fs = rs = None
+    for k, d in enumerate(durs):
+        a0, a1 = axs[0, k], axs[1, k]
+        add_basemap(a0, labels=(k == 0)); add_basemap(a1, labels=False)
+        fs = a0.contourf(_GRID["lons"], _GRID["lats"], np.ma.masked_invalid(ffg[d]), flevs, cmap=fcm,
+                         extend="both", transform=ccrs.PlateCarree(), zorder=2)
+        a0.set_title(f"{d}-h flash flood guidance", fontsize=12, fontweight="bold")
+        pct = ratios[d]["ratio"] * 100.0
+        rr = np.ma.masked_less(np.ma.masked_invalid(pct), PCT_LEVS[0])
+        rs = a1.contourf(_GRID["lons"], _GRID["lats"], rr, PCT_LEVS, cmap=rcm, norm=rnm, extend="max",
+                         transform=ccrs.PlateCarree(), zorder=2)
+        if np.nanmax(pct) >= 100:
+            a1.contour(_GRID["lons"], _GRID["lats"], np.nan_to_num(pct), [100.0], colors="#ffffff",
+                       linewidths=0.9, transform=ccrs.PlateCarree(), zorder=3)
+        annotate_max(a1, np.nan_to_num(pct), unit="%", fmt="{:.0f}", floor=PCT_LEVS[0])
+        a1.set_title(f"Highest {d}-h LPMM, % of {d}-h FFG", fontsize=12, fontweight="bold")
+    fig.canvas.draw()                                   # cartopy fixes the panel boxes only at draw time
+    top_y0 = min(a.get_position().y0 for a in axs[0])
+    bot_y0 = min(a.get_position().y0 for a in axs[1])
+    colorbar(fig, fs, [0.1, top_y0 - 0.038, 0.8, 0.013], "Flash flood guidance (in)", flevs)
+    colorbar(fig, rs, [0.1, bot_y0 - 0.045, 0.8, 0.014], "Highest % of FFG in the next 48 h  ·  white line = 100% (QPF reaches FFG)", PCT_LEVS)
+    fig.suptitle(f"REFS LPMM vs flash flood guidance, {fmt_init(init)} init  ·  FFG issued {ffg_time:%d/%HZ}\n{valid_txt}",
+                 fontsize=14, fontweight="bold", y=0.97)
+    savefig(fig, "ffg_ratio.png", 130)
+    return True
+
+
+def _pct_cmap():
+    cm = mcolors.ListedColormap(RCOLORS[:len(PCT_LEVS) - 1]); cm.set_over(RCOLORS[-1])
+    return cm, mcolors.BoundaryNorm(PCT_LEVS, cm.N)
+
+
+def plot_ffg_frames(hourly, ffg_grid, init):
+    """Loop frames of LPMM as % of FFG: hourly for 1 h, 3-h blocks for 3 h, 6-h blocks for 6 h."""
+    cm, nm = _pct_cmap()
+    out = {}
+    for dur in FFG_DURATIONS:
+        if dur not in ffg_grid:
+            continue
+        fr, frames = FrameRenderer(), []
+        f = ffg_grid[dur]
+        for n, end in enumerate(range(dur, hourly.shape[0] + 1, FFG_FRAME_STEP[dur]), start=1):
+            q = hourly[end - dur:end].sum(axis=0)
+            with np.errstate(invalid="ignore", divide="ignore"):
+                pct = np.where(np.isfinite(f) & (f > 0), q / f * 100.0, np.nan)
+            def draw(ax, pct=pct):
+                m = ax.contourf(_GRID["lons"], _GRID["lats"], np.ma.masked_less(np.ma.masked_invalid(pct), PCT_LEVS[0]),
+                                PCT_LEVS, cmap=cm, norm=nm, extend="max", transform=ccrs.PlateCarree(), zorder=2)
+                extra = []
+                if np.nanmax(np.nan_to_num(pct)) >= 100:
+                    extra.append(ax.contour(_GRID["lons"], _GRID["lats"], np.nan_to_num(pct), [100.0], colors="#ffffff",
+                                            linewidths=1.0, transform=ccrs.PlateCarree(), zorder=3))
+                extra += annotate_max(ax, np.nan_to_num(pct), unit="%", fmt="{:.0f}", floor=PCT_LEVS[0])
+                return m, extra
+            v0, v1 = init + timedelta(hours=end - dur), init + timedelta(hours=end)
+            fname = f"ffgr_{dur}h_{n:02d}.png"
+            fr.frame(draw, f"REFS LPMM {dur}-h QPF as % of {dur}-h FFG  ·  f{end - dur:02d}–f{end:02d}",
+                     f"Valid {v0:%a %HZ} – {v1:%a %HZ %d %b}  ·  {init:%HZ %d %b} init  ·  white = 100% (reaches FFG)",
+                     os.path.join(OUT_DIR, fname), "% of flash flood guidance", PCT_LEVS)
+            mx = np.nanmax(pct) if np.isfinite(pct).any() else 0
+            frames.append({"file": fname, "start": v0.isoformat(), "end": v1.isoformat(),
+                           "fhr": f"f{end - dur:02d}-f{end:02d}", "max_pct": int(round(mx))})
+        fr.close()
+        out[str(dur)] = frames
+    print(f"[ffg] frames: " + ", ".join(f"{d} h x{len(v)}" for d, v in out.items()))
+    return out
+
 
 # =============================================================================
 # 9. FORECAST PRODUCTS
@@ -1570,6 +1968,16 @@ def main():
     eas = optional("eas", fetch_many, latest, "eas", window_hours(), read_eas_6h) or {}
     print("FFRI latest")
     ffri = optional("ffri", fetch_many, latest, "ffri", window_hours(), read_ffri_6h) or {}
+    print("Flash flood guidance")
+    ffg_time, ffg_path = optional("ffg fetch", find_ffg, latest) or (None, None)
+    ffg_grid = ffg_rat = None              # (not "ffg": the FFRI block below uses that name)
+    if ffg_path:
+        try:
+            ffg_grid = optional("ffg decode", read_ffg, ffg_path)
+        finally:
+            os.remove(ffg_path)
+        if ffg_grid:
+            ffg_rat = optional("ffg ratios", ffg_ratios, runs[0]["data"], ffg_grid, latest)
     print("Flow regime")
     regime = optional("forecast regime", forecast_regime, latest)
     regime_log = optional("analysis wind", log_analysis_wind, latest) or load_json(REGIME_LOG, [])
@@ -1600,6 +2008,7 @@ def main():
                                                         lpmm_tot, avrg_tot, latest, valid_txt)),
         "ffri": any(v is not None for v in ffri_max.values())
                 and bool(optional("ffri", plot_ffri, ffri_max, latest, valid_txt)),
+        "ffg": bool(ffg_rat) and bool(optional("ffg plot", plot_ffg, ffg_grid, ffg_rat, latest, ffg_time, valid_txt)),
         "verify_map": bool(optional("verify map", plot_verify_map)),
         "verify": bool(optional("verify scores", plot_verify_scores, scores)),
     }
@@ -1621,6 +2030,22 @@ def main():
     meta = build_meta(runs, avrg, eas, ffri_max, valid_start, valid_end, frames, eas_frames,
                       products, scores, regime)
     meta["timelines"] = timelines
+    fl = optional("flash", build_flash_now, OUT_DIR)
+    if fl:
+        meta["flash"] = fl
+        meta.setdefault("products", {})["flash"] = True
+    if ffg_rat:
+        meta["ffg_frames"] = optional("ffg frames", plot_ffg_frames, runs[0]["data"], ffg_grid, latest) or {}
+        meta["ffg_issued"] = ffg_time.isoformat()
+        for site in meta["sites"]:
+            (j, i), _ = site_index(site["name"])
+            per = {}
+            for d, rr in ffg_rat.items():
+                v = rr["ratio"][j, i]
+                if np.isfinite(v):
+                    per[str(d)] = {"ratio": r2(v), "ffg": r2(ffg_grid[d][j, i]), "qpf": r2(rr["qpf"][j, i]),
+                                   "ends": (latest + timedelta(hours=int(rr["end_hour"][j, i]))).isoformat()}
+            site["ffg"] = per
     meta["diagnostics"] = DIAG
     save_json(os.path.join(OUT_DIR, "meta.json"), meta, indent=1)
     if os.path.exists(INDEX_SRC):

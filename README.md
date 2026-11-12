@@ -28,3 +28,27 @@ A fix to the shared files can be copied between repos unchanged.
 
 Look-backs: the site's Look back tab (anyone with a GitHub account), Actions → "Look back"
 (you), or automatically for the 24 h ending 12Z after each 12Z cycle.
+
+## MRMS FLASH
+`flash.py` (workflow "MRMS FLASH refresh", about every 30 min) redraws the FLASH panel from the
+latest NCEP files: CREST max unit streamflow (flooding likely > 2, significant > 6 m³ s⁻¹ km⁻²),
+QPE ÷ FFG (max of 1/3/6 h), QPE recurrence interval and CREST soil saturation. Look-backs add the
+window maxima of the same products. NCEP keeps ~25 h; older windows use the AWS archive if present.
+
+## Flash flood guidance
+The FFG ratio tab divides REFS LPMM 1/3/6-h totals by WPC's CONUS gridded FFG
+(ftp.wpc.ncep.noaa.gov/workoff/ffg, 5 km, 00/06/12/18Z).
+
+## Refreshing FLASH faster
+GitHub's own cron rarely runs on time below ~15 min. To trigger "MRMS FLASH refresh" from an
+external scheduler, create a fine-grained token with Actions: Read and write on this repo and call:
+
+    POST https://api.github.com/repos/OWNER/REPO/actions/workflows/flash_update.yml/dispatches
+    Authorization: Bearer <token>
+    Accept: application/vnd.github+json
+    {"ref": "main"}
+
+GitHub Pages deployed from a branch has a soft limit of 10 builds per hour, and every deploy
+(FLASH, the 6-hourly build, look-backs) counts, so keep FLASH at 10 min or slower. Each FLASH
+run loops the last FLASH_LOOP_SCANS (default 12) 10-min scans of QPE % of FFG and CREST unit
+streamflow, ending at the newest.

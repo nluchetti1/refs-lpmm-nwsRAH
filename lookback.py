@@ -594,6 +594,19 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
         if not any(r["model"].startswith(key) for r in rows) and not plan_inits(key, start, end):
             notes.append(f"{MODELS[key]['label']} ({skip_reason(key, start, end)})")
 
+    flash = None
+    try:
+        fraws, fwhen, fcount = flash_window(start, end)
+        if fraws:
+            R.plot_flash(fraws, f"{title}\nMRMS FLASH, maximum during {start:%HZ %d %b} to {end:%HZ %d %b %Y}",
+                         os.path.join(out_dir, "flash.png"))
+            flash = flash_case_block(fraws, fwhen)
+            flash["files"] = fcount
+        else:
+            notes.append("MRMS FLASH (not on NCEP for windows older than ~1 day, and not found in the AWS archive)")
+    except Exception as e:
+        print(f"[flash] failed: {e}")
+
     win_txt = f"{start:%HZ %a %d %b} to {end:%HZ %a %d %b %Y}"
     obs_panel = (obs, olat, olon, f"MRMS {hours}-h QPE (Pass 2)", R.TEXT)
     if refs_panels:
@@ -630,14 +643,60 @@ def build_case(start=None, end=None, hours=None, title=None, auto=False, request
         "event_threshold": event_thr,
         "models": {k: {"label": v["label"], "color": v["color"]} for k, v in MODELS.items()},
         "thresholds": CASE_THRESHOLDS, "event_radius_km": EVENT_RADIUS_KM,
-        "rows": rows, "notes": notes,
-        "images": [f for f in ("dprog.png", "models.png", "ens.png", "refs.png") if os.path.exists(os.path.join(out_dir, f))],
+        "rows": rows, "notes": notes, "flash": flash,
+        "flash_products": {p: {"label": c["label"], "unit": c["unit"], "short": c["short"], "marks": c["marks"]}
+                           for p, c in R.FLASH_PRODUCTS.items()},
+        "images": [f for f in ("dprog.png", "flash.png", "models.png", "ens.png", "refs.png") if os.path.exists(os.path.join(out_dir, f))],
     }
     case["ecmwf_reader"] = ECMWF_READER_VERSION
     case["summary"] = summarize(case)
     R.save_json(os.path.join(out_dir, "case.json"), case, indent=1)
     print(f"[case] {cid}: {len(rows)} forecast rows, MRMS max {obs_max:.2f}\" near {site_name}")
     return out_dir
+
+
+FLASH_STEP_H = {"CREST_MAXUNITSTREAMFLOW": 3, "CREST_MAXSOILSAT": 3, "QPE_FFGMAX": 1, "QPE_ARIMAX": 1}
+
+
+def flash_window(start, end):
+    """Window maximum of each FLASH product, with the time of the maximum. CREST files each hold a
+    max over -30 min..+12 h, so 3-hourly sampling catches its peak; QPE ratios are sampled hourly."""
+    jobs = []
+    for p in R.FLASH_PRODUCTS:
+        t = start + timedelta(hours=FLASH_STEP_H[p])
+        while t <= end:
+            jobs.append((p, t)); t += timedelta(hours=FLASH_STEP_H[p])
+    with ThreadPoolExecutor(6) as ex:
+        got = list(ex.map(lambda j: (j, R.fetch_flash(*j)), jobs))
+    acc, when, count, template = {}, {}, {}, {}
+    for (p, t), raw in got:
+        if raw is None:
+            continue
+        v = np.where(raw["vals"] >= 0, raw["vals"], np.nan)
+        count[p] = count.get(p, 0) + 1
+        if p not in acc:
+            acc[p] = v; when[p] = np.full(v.shape, t.timestamp()); template[p] = raw
+        elif v.shape == acc[p].shape:
+            newer = np.nan_to_num(v, nan=-1) > np.nan_to_num(acc[p], nan=-1)
+            acc[p] = np.where(newer, v, acc[p]); when[p] = np.where(newer, t.timestamp(), when[p])
+    print(f"[flash] files per product: {count} (of {dict((p, sum(1 for j in jobs if j[0] == p)) for p in R.FLASH_PRODUCTS)})")
+    raws = {p: dict(template[p], vals=np.where(np.isfinite(acc[p]), acc[p], -1).astype(np.float32)) for p in acc}
+    return raws, when, count
+
+
+def flash_case_block(raws, when):
+    out = {"max": {}, "sites": R.flash_site_values(raws)}
+    for p, raw in raws.items():
+        vals, lats, lons = R.raw_native(raw)
+        view = R.in_view(lats, lons) & np.isfinite(vals)
+        if not view.any():
+            continue
+        j, i = np.unravel_index(np.argmax(np.where(view, vals, -1)), vals.shape)
+        near, km = nearest_site(float(lats[j, i]), float(lons[j, i]))
+        out["max"][p] = {"value": R.r2(vals[j, i]), "lat": round(float(lats[j, i]), 3), "lon": round(float(lons[j, i]), 3),
+                         "near": near, "near_km": km,
+                         "when": datetime.fromtimestamp(float(when[p][j, i]), timezone.utc).isoformat()}
+    return out
 
 
 def summarize(case):

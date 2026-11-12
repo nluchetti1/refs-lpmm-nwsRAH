@@ -153,6 +153,42 @@
 
   footer { margin-top: 32px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--rule); padding-top: 16px; max-width: 90ch; }
   @media (max-width: 600px) { .wrap { padding: 20px 14px 40px; } .frame-label { min-width: 0; text-align: left; } }
+  /* ---- compact layout: smaller type, wrapping tabs, figures that always fit the screen ---- */
+  body { font-size: 14.5px; line-height: 1.45; }
+  .wrap { max-width: 1560px; padding: 18px 24px 40px; }
+  h1 { font-size: clamp(24px, 2.4vw, 34px); }
+  .sub { font-size: 14px; margin-top: 4px; }
+  .status { font-size: 14px; }
+  .ribbon { margin: 14px 0 4px; padding-top: 30px; }
+  .ribbon-cap, .regime-cap { font-size: 13.5px; }
+  .site-pick { margin: 8px 0 0; gap: 8px; }
+  .site-pick label { font-size: 14px; }
+  .site-pick select { font-size: 14px; padding: 4px 28px 4px 8px; min-width: 200px; }
+  .site-pick .note { font-size: 13px; }
+  .grid { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; margin-top: 16px; }
+  .tabs { flex-wrap: wrap; overflow: visible; gap: 0 2px; }
+  .tabs button { font-size: 14px; padding: 7px 10px; }
+  .view { padding-top: 12px; }
+  .note { font-size: 13.5px; }
+  .figure img { width: auto; max-width: 100%; max-height: 85vh; margin: 0 auto; }
+  .loop-wrap { max-width: 860px; }
+  .loop-wrap .figure img { max-height: 78vh; }
+  .controls { margin-top: 8px; }
+  .btn { font-size: 13px; padding: 5px 10px; }
+  .seg button { font-size: 13px; padding: 5px 12px; }
+  aside section, .card { padding: 12px 14px; }
+  aside section { margin-bottom: 12px; }
+  h2 { font-size: 16px; margin-bottom: 8px; }
+  table { font-size: 13px; }
+  th { font-size: 12px; padding: 4px 7px 5px; }
+  td { padding: 5px 7px; }
+  .sites { margin-top: 18px; }
+  .case-head { font-size: 19px; }
+  .case-sub, .scorecard ul { font-size: 13.5px; }
+  .scorecard { padding: 12px 14px; margin: 4px 0 14px; }
+  footer { font-size: 12.5px; margin-top: 24px; }
+  @media (min-width: 1700px) { .grid { grid-template-columns: minmax(0, 1fr) 320px; } }
+
   @media (prefers-reduced-motion: reduce) { .tick { transition: none; } }
 </style>
 </head>
@@ -191,6 +227,8 @@
         <button role="tab" aria-selected="false" aria-controls="v-thresh" id="t-thresh">Thresholds</button>
         <button role="tab" aria-selected="false" aria-controls="v-avrg"   id="t-avrg" data-needs="avrg">LPMM vs AVRG</button>
         <button role="tab" aria-selected="false" aria-controls="v-ffri"   id="t-ffri" data-needs="ffri">Flash flood</button>
+        <button role="tab" aria-selected="false" aria-controls="v-ffg"    id="t-ffg"  data-needs="ffg">FFG ratio</button>
+        <button role="tab" aria-selected="false" aria-controls="v-flash"  id="t-flash" data-needs="flash">FLASH now</button>
         <button role="tab" aria-selected="false" aria-controls="v-pad"    id="t-pad">Site timeline</button>
         <button role="tab" aria-selected="false" aria-controls="v-verify" id="t-verify">Verification</button>
         <button role="tab" aria-selected="false" aria-controls="v-cases"  id="t-cases">Look back</button>
@@ -249,6 +287,47 @@
         <div class="fig-actions"><a data-dl="ffri_48h.png" download>Download PNG</a></div>
       </section>
 
+      <section class="view" id="v-ffg" role="tabpanel" aria-labelledby="t-ffg" hidden>
+        <p class="note" id="ffg-note">Top row: the River Forecast Centers’ flash flood guidance (WPC CONUS mosaic), the rain needed in 1, 3 or 6 h to start small-stream flooding.
+          The loop shows LPMM QPF as a percentage of FFG through the run: 100% means forecast rain equals guidance, 200% is twice it. Inside the white line LPMM reaches guidance.
+          This is a single best-estimate field; the Flash flood tab gives the ensemble probability of the same exceedance.
+          <span class="flat" id="ffg-issued"></span></p>
+        <div class="seg" id="ffgr-seg" role="group" aria-label="Duration"></div>
+        <div class="loop-wrap" data-loop="ffgr">
+          <div class="figure"><img class="loop-img" alt="loop frame"></div>
+          <div class="controls">
+            <button class="btn prev" aria-label="Previous frame">◀</button>
+            <button class="btn play">Play</button>
+            <button class="btn next" aria-label="Next frame">▶</button>
+            <input type="range" class="slider" min="0" max="1" value="0" aria-label="Frame">
+            <span class="frame-label"></span>
+          </div>
+        </div>
+        <h2 style="margin:22px 0 8px">Guidance and 48-h maximum</h2>
+        <div class="figure"><img data-src="ffg_ratio.png" alt="Flash flood guidance and highest % of FFG"></div>
+        <div class="fig-actions"><a data-dl="ffg_ratio.png" download>Download PNG</a></div>
+      </section>
+
+      <section class="view" id="v-flash" role="tabpanel" aria-labelledby="t-flash" hidden>
+        <p class="note"><strong id="flash-age"></strong> Observed, not forecast: MRMS FLASH runs the CREST hydrologic model on radar QPE every 10 min.
+          Unit streamflow is the peak flow per km² of basin over the next 12 h of routing; flooding is likely above about 2 and significant above 6 m³ s⁻¹ km⁻²
+          (white lines). QPE as % of FFG above 100% means observed rain has reached flash flood guidance. Recurrence interval shows how rare the rain is, not how severe the flooding.</p>
+        <div class="seg" id="flash-seg" role="group" aria-label="Product"></div>
+        <div class="loop-wrap" data-loop="flash" data-start="last">
+          <div class="figure"><img class="loop-img" alt="loop frame"></div>
+          <div class="controls">
+            <button class="btn prev" aria-label="Previous frame">◀</button>
+            <button class="btn play">Play</button>
+            <button class="btn next" aria-label="Next frame">▶</button>
+            <input type="range" class="slider" min="0" max="1" value="0" aria-label="Frame">
+            <span class="frame-label"></span>
+          </div>
+        </div>
+        <h2 style="margin:22px 0 8px">Latest scan, all products</h2>
+        <div class="figure"><img data-src="flash.png" alt="MRMS FLASH latest"></div>
+        <div class="fig-actions"><a data-dl="flash.png" download>Download PNG</a></div>
+      </section>
+
       <section class="view" id="v-pad" role="tabpanel" aria-labelledby="t-pad" hidden>
         <p class="note" id="pad-note">Nearest grid point. Bars are the latest LPMM, solid lines earlier runs, dashed AVRG. The bottom panel is the EAS 6-h probability at the site.</p>
         <div class="seg" id="tl-seg" role="group" aria-label="Site" style="flex-wrap:wrap"></div>
@@ -300,6 +379,8 @@
         <tr>
           <th></th><th colspan="5" style="text-align:left">REFS 48-h QPF, latest run</th>
           <th class="grp" colspan="3" style="text-align:left">REFS ensemble probability, highest 6-h window</th>
+          <th class="grp" style="text-align:left">vs FFG</th>
+          <th class="grp" style="text-align:left">Observed now</th>
         </tr>
         <tr>
           <th>Site</th><th>LPMM</th><th>AVRG</th><th title="Latest LPMM minus the run 6 h earlier, same 48-h window">LPMM vs −6 h run</th>
@@ -307,6 +388,8 @@
           <th class="grp" title="EAS: share of members (with neighborhood) at or above the threshold">EAS ≥ 0.5″</th>
           <th title="EAS: share of members (with neighborhood) at or above the threshold">EAS ≥ 1″</th>
           <th title="FFRI: probability 6-h QPF exceeds flash flood guidance">FFRI &gt; FFG</th>
+          <th class="grp" title="Highest LPMM QPF as % of FFG over 1, 3 and 6 h in the next 48 h">LPMM % of FFG</th>
+          <th class="grp" title="MRMS FLASH, highest within 5 km: CREST unit streamflow (m³ s⁻¹ km⁻²) and observed QPE as % of FFG">FLASH q · QPE % of FFG</th>
         </tr>
       </thead>
       <tbody id="sites"></tbody>
@@ -368,13 +451,18 @@
     let frames = [], i = 0, timer = null;
     const self = {
       root,
-      set(f) { frames = f || []; slider.max = Math.max(0, frames.length - 1); self.show(Math.min(i, slider.max)); },
+      set(f) {
+        const fresh = frames !== f;
+        frames = f || []; slider.max = Math.max(0, frames.length - 1);
+        if (fresh && root.dataset.start === "last") i = frames.length - 1;
+        self.show(Math.min(i, slider.max));
+      },
       show(k) {
         if (!frames.length) return;
         i = (k + frames.length) % frames.length;
         const f = frames[i];
         img.src = f.file + "?v=" + stamp; slider.value = i;
-        label.textContent = `${f.fhr}, ends ${fmtUTC(f.end)}`;
+        label.textContent = f.label || `${f.fhr}${f.max_pct != null ? `, max ${f.max_pct}% of FFG` : ""}, ends ${fmtUTC(f.end)}`;
       },
       stop() { clearInterval(timer); timer = null; playBtn.textContent = "Play"; },
       toggle() {
@@ -391,7 +479,9 @@
     return self;
   }
   const loopers = [...document.querySelectorAll("[data-loop]")].map(Looper);
-  const lpmmLoop = loopers[0], easLoop = loopers[1];
+  const byKey = (k) => loopers.find(l => l.root.dataset.loop === k);
+  const lpmmLoop = byKey("lpmm"), easLoop = byKey("eas"), ffgrLoop = byKey("ffgr"), flashLoop = byKey("flash");
+  let ffgrDur = null, flashProd = null;
   let easThr = null;
 
   document.addEventListener("keydown", e => {
@@ -403,6 +493,27 @@
     if (e.key === "ArrowLeft") active.step(-1);
     if (e.key === " ") { e.preventDefault(); active.toggle(); }
   });
+
+  function drawSeg(segId, sets, cur, labelFn, onPick) {
+    const keys = Object.keys(sets || {});
+    if (!keys.length) { $(segId).innerHTML = ""; return null; }
+    if (!cur || !sets[cur]) cur = keys[0];
+    $(segId).innerHTML = keys.map(k => `<button aria-pressed="${k === cur}" data-k="${k}">${labelFn(k)}</button>`).join("");
+    $(segId).querySelectorAll("button").forEach(b => b.onclick = () => onPick(b.dataset.k));
+    return cur;
+  }
+  function drawFfgrSeg() {
+    const sets = meta.ffg_frames || {};
+    ffgrDur = drawSeg("ffgr-seg", sets, ffgrDur, k => `${k}-h`, k => { ffgrDur = k; drawFfgrSeg(); });
+    if (ffgrDur) ffgrLoop.set(sets[ffgrDur]);
+  }
+  function drawFlashSeg() {
+    const sets = (meta.flash && meta.flash.frames) || {};
+    const P = (meta.flash && meta.flash.products) || {};
+    flashProd = drawSeg("flash-seg", sets, flashProd,
+      k => k === "QPE_FFGMAX" ? "QPE % of FFG" : (P[k] ? P[k].label.replace("CREST max ", "") : k), k => { flashProd = k; drawFlashSeg(); });
+    if (flashProd) flashLoop.set(sets[flashProd]);
+  }
 
   function drawEasSeg() {
     const sets = meta.eas_frames || {};
@@ -465,10 +576,46 @@
     site.runs.slice(1).forEach((r, k) => cap += `, ${tri(k + 1)} ${r.run} run ${inch(r.total)}`);
     cap += `. Within ${meta.nbhd_km} km, up to ${inch(a.nbhd_max)}.`;
     if (site.eas_max && site.eas_max["1"] != null) cap += ` Chance of ≥ 1″ in a 6-h window: ${site.eas_max["1"]}%.`;
+    const fv = meta.flash && meta.flash.sites && meta.flash.sites[site.name];
+    if (fv) {
+      const q = fv.CREST_MAXUNITSTREAMFLOW, r = fv.QPE_FFGMAX;
+      if ((q ?? 0) >= 2 || (r ?? 0) >= 100)
+        cap += ` <strong style="color:var(--run12)">Observed now (FLASH): unit streamflow ${q?.toFixed(1) ?? "—"} m³ s⁻¹ km⁻²${(q ?? 0) >= 6 ? ", significant flooding range" : ", flooding likely range"}${r != null ? `, QPE ${Math.round(r)}% of FFG` : ""}.</strong>`;
+    }
+    const fw = ffgWorst(site);
+    if (fw) cap += fw.ratio >= 1
+      ? ` <strong style="color:var(--run12)">LPMM QPF reaches ${Math.round(fw.ratio * 100)}% of ${fw.d}-h flash flood guidance</strong> (${fw.qpf}″ vs ${fw.ffg}″, ending ${fmtUTC(fw.ends)}).`
+      : ` Peak LPMM is ${Math.round(fw.ratio * 100)}% of ${fw.d}-h flash flood guidance (${fw.ffg}″).`;
     $("ribbon-cap").innerHTML = cap;
   }
 
   // ---------- tables & sidebar
+  function ffgWorst(s) {
+    const f = s.ffg || {};
+    let best = null;
+    for (const d of Object.keys(f)) if (!best || f[d].ratio > best.ratio) best = { d, ...f[d] };
+    return best;
+  }
+  function ffgCell(s) {
+    const w = ffgWorst(s);
+    if (!w) return "—";
+    const cls = w.ratio >= 1 ? "p-hi" : w.ratio >= 0.5 ? "p-mid" : "p-lo";
+    return `<span class="${cls}" title="${w.qpf}″ in ${w.d} h vs ${w.ffg}″ guidance, ending ${fmtUTC(w.ends)}">${Math.round(w.ratio * 100)}%</span> <span class="flat">${w.d} h</span>`;
+  }
+
+  function flashLevel(q, r) {
+    if ((q ?? 0) >= 6) return "p-hi";
+    if ((q ?? 0) >= 2 || (r ?? 0) >= 100) return "p-mid";
+    return "p-lo";
+  }
+  function flashCell(name, sites) {
+    const fs = sites || (meta.flash && meta.flash.sites) || {};
+    const v = fs[name];
+    if (!v) return "—";
+    const q = v.CREST_MAXUNITSTREAMFLOW, r = v.QPE_FFGMAX;
+    return `<span class="${flashLevel(q, r)}">${q == null ? "—" : q.toFixed(1)}</span> <span class="flat">·</span> ${r == null ? "—" : Math.round(r) + "%"}`;
+  }
+
   function drawSites() {
     $("nb-head").textContent = `LPMM ${meta.nbhd_km} km max`;
     $("sites").innerHTML = meta.sites.map(s => {
@@ -483,7 +630,8 @@
       const e = s.eas_max || {};
       return `<tr class="${s.pad ? "pad" : ""}"><td title="${s.name}">${s.name}</td><td>${inch(a.total)}</td>
         <td style="color:var(--avrg)">${inch(s.avrg_total)}</td><td class="${cls}">${d}</td><td>${inch(a.nbhd_max)}</td>
-        <td>${peak}</td><td class="grp">${pct(e["0.5"])}</td><td>${pct(e["1"])}</td><td>${pct(s.ffg_max)}</td></tr>`;
+        <td>${peak}</td><td class="grp">${pct(e["0.5"])}</td><td>${pct(e["1"])}</td><td>${pct(s.ffg_max)}</td>
+        <td class="grp">${ffgCell(s)}</td><td class="grp">${flashCell(s.name)}</td></tr>`;
     }).join("");
   }
 
@@ -691,6 +839,21 @@
     const m = (c.models || {})[k] || { label: k, color: "var(--text)" };
     return { label: m.label + (st ? " " + STAT[st] : ""), color: m.color, base: k, stat: st };
   }
+  function flashCard(c) {
+    const f = c.flash;
+    if (!f || !f.max) return "";
+    const P = c.flash_products || {};
+    const line = (p, fmt) => { const m = f.max[p]; if (!m) return "";
+      return `<li>${esc((P[p] || {}).label || p)}: <strong>${fmt(m.value)}</strong> ${m.near_km < 3 ? "at" : `${m.near_km} km from`} ${esc(m.near)}, ${fmtUTC(m.when, { day: "2-digit", month: "short" })}</li>`; };
+    const q = (f.max.CREST_MAXUNITSTREAMFLOW || {}).value;
+    const verdict = q == null ? "" : q >= 6 ? "Significant flash flooding range (above 6)." : q >= 2 ? "Flash flooding likely range (2 to 6)." : "Below the flooding-likely range (under 2).";
+    return `<div class="scorecard"><h2 style="margin:0">What MRMS FLASH observed</h2><ul>
+      ${line("CREST_MAXUNITSTREAMFLOW", v => v.toFixed(1) + " m³ s⁻¹ km⁻²")}
+      ${line("QPE_FFGMAX", v => Math.round(v) + "% of FFG")}
+      ${line("QPE_ARIMAX", v => (v >= 1000 ? "≥ 1000" : Math.round(v)) + "-yr")}
+      ${line("CREST_MAXSOILSAT", v => Math.round(v) + "%")}</ul>
+      <p class="note" style="margin:4px 0 0">${verdict} Radar-only QPE drives FLASH, so it can differ from the gauge-corrected MRMS totals above.</p></div>`;
+  }
   async function showCase(id, fromHash) {
     caseSel = id;
     $("case-list").querySelectorAll("button").forEach(b => b.setAttribute("aria-current", b.dataset.id === id));
@@ -712,7 +875,7 @@
     c.rows.forEach(r => { if (!shortest[r.model] || r.lead < shortest[r.model].lead) shortest[r.model] = r; });
     const cols = Object.keys(shortest).filter(k => !k.endsWith("_mean"))
       .sort((a, b) => order.indexOf(modelInfo(c, a).base) - order.indexOf(modelInfo(c, b).base) || a.localeCompare(b));
-    const siteRows = Object.keys(c.obs.sites).map(n => `<tr><td>${n}</td><td>${inch(c.obs.sites[n])}</td>${
+    const siteRows = Object.keys(c.obs.sites).map(n => `<tr><td>${n}</td><td>${inch(c.obs.sites[n])}</td>${c.flash ? `<td>${flashCell(n, c.flash.sites)}</td>` : ""}${
       cols.map(m => `<td>${inch(shortest[m].sites[n])}</td>`).join("")}</tr>`).join("");
     const refs0 = c.rows.filter(x => x.model === "REFS").sort((a, b) => a.lead - b.lead)[0];
     const hiddenNow = new Set(JSON.parse(localStorage.getItem("hiddenCases") || "[]")).has(c.id);
@@ -745,7 +908,9 @@
         ○ marks the observed max. Coarse models are scored against MRMS averaged over their grid box (the 25-km-mean MRMS max was ${inch(c.obs.area_max)}),
         so compare a 0.25° model with that number, not the 1-km peak. Ensemble “max” is the wettest member at each point, an upper envelope rather than a forecast.</p>
       ${card}
+      ${flashCard(c)}
       ${img("dprog.png", "Forecast trend by lead time")}
+      ${img("flash.png", "MRMS FLASH maxima during the window")}
       ${img("models.png", "Shortest-lead forecasts vs MRMS")}
       ${img("ens.png", "Global ensembles vs MRMS")}
       ${img("refs.png", "REFS LPMM at each lead vs MRMS")}
@@ -756,8 +921,8 @@
         <tbody>${rows}</tbody></table></div>
       <div class="table-wrap" style="margin-top:16px"><table>
         <thead>
-          <tr><th></th><th colspan="${cols.length + 1}" style="text-align:left">${c.hours}-h total (in). Each model column is its shortest-lead run: run time and hours before the window start.</th></tr>
-          <tr><th>Site</th><th>MRMS</th>${cols.map(m => { const i = modelInfo(c, m); const r = shortest[m];
+          <tr><th></th><th colspan="${cols.length + 1 + (c.flash ? 1 : 0)}" style="text-align:left">${c.hours}-h total (in). Each model column is its shortest-lead run: run time and hours before the window start.</th></tr>
+          <tr><th>Site</th><th>MRMS</th>${c.flash ? `<th title="MRMS FLASH maxima within 5 km">FLASH q · QPE % of FFG</th>` : ""}${cols.map(m => { const i = modelInfo(c, m); const r = shortest[m];
             return `<th style="color:${i.color}">${i.label}<br><span class="flat" style="font-weight:500">${dayUTC(r.init).replace(/^\w+, /, "")} · ${r.lead} h lead</span></th>`; }).join("")}</tr>
         </thead>
         <tbody>${siteRows}</tbody></table></div>
@@ -789,6 +954,16 @@
     }
     const f = t.find(x => x.site === tlSel).file;
     $("tl-img").src = f + "?v=" + stamp; $("tl-dl").href = f + "?v=" + stamp;
+  }
+  function drawFlashAge() {
+    const el = $("flash-age");
+    if (!el || !meta.flash) return;
+    const min = Math.round((Date.now() - Date.parse(meta.flash.valid)) / 60e3);
+    el.textContent = `Valid ${fmtUTC(meta.flash.valid, { minute: "2-digit" })} (${min < 120 ? min + " min" : Math.round(min / 60) + " h"} ago).`;
+    el.style.color = min > 90 ? "var(--warn)" : "";
+  }
+  function drawFfgNote() {
+    $("ffg-issued").textContent = meta.ffg_issued ? `FFG issued ${fmtUTC(meta.ffg_issued, { day: "2-digit", month: "short" })}.` : "";
   }
   function drawDiag() {
     const d = (meta.diagnostics || {}).eas || {};
@@ -825,7 +1000,7 @@
     document.querySelectorAll("img[data-src]").forEach(img => img.src = img.dataset.src + "?v=" + stamp);
     document.querySelectorAll("a[data-dl]").forEach(a => a.href = a.dataset.dl + "?v=" + stamp);
     lpmmLoop.set(meta.frames);
-    drawEasSeg();
+    drawEasSeg(); drawFfgrSeg(); drawFlashSeg();
   }
 
   async function load() {
@@ -833,10 +1008,11 @@
       const r = await fetch("meta.json?t=" + Date.now(), { cache: "no-store" });
       if (!r.ok) throw new Error(r.status);
       const m = await r.json();
-      if (m.generated_utc !== stamp) {
-        meta = m; stamp = m.generated_utc;
-        drawTabs(); drawStatus(); drawRibbon(); drawRegime(); drawSites(); drawSide(); drawVerify(); drawImages(); drawTimelines(); drawDiag(); loadCases();
-      } else drawStatus();
+      const key = m.generated_utc + "|" + ((m.flash && m.flash.valid) || "");
+      if (key !== stamp) {
+        meta = m; stamp = key;
+        drawTabs(); drawStatus(); drawRibbon(); drawRegime(); drawSites(); drawSide(); drawVerify(); drawImages(); drawTimelines(); drawDiag(); drawFfgNote(); drawFlashAge(); loadCases();
+      } else { drawStatus(); drawFlashAge(); }
     } catch (e) {
       if (!meta) {
         $("status").dataset.s = "stale";
@@ -848,7 +1024,7 @@
     }
   }
   load();
-  setInterval(load, 10 * 60 * 1000);
+  setInterval(load, 2 * 60 * 1000);   // FLASH can refresh every ~10 min
 })();
 </script>
 </body>
