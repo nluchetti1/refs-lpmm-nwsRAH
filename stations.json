@@ -1,0 +1,245 @@
+{
+ "fetched": "2026-11-14T19:35:30+00:00",
+ "stations": [
+  {
+   "id": "AFP",
+   "sname": "Wadesboro",
+   "lat": 35.0206,
+   "lon": -80.0771,
+   "awos": false,
+   "county": "Anson"
+  },
+  {
+   "id": "BUY",
+   "sname": "BURLINGTON-ALAMANCE_REG_(ASOS)",
+   "lat": 36.0485,
+   "lon": -79.4749,
+   "awos": false,
+   "county": "Alamance"
+  },
+  {
+   "id": "CTZ",
+   "sname": "CLINTON",
+   "lat": 34.9756,
+   "lon": -78.3644,
+   "awos": true,
+   "county": "Sampson"
+  },
+  {
+   "id": "ETC",
+   "sname": "Tarboro",
+   "lat": 35.9373,
+   "lon": -77.5465,
+   "awos": false,
+   "county": "Edgecombe"
+  },
+  {
+   "id": "EXX",
+   "sname": "LEXINGTON_DAVIDSON_COUNTY_AIRP",
+   "lat": 35.7811,
+   "lon": -80.3038,
+   "awos": false,
+   "county": "Rowan"
+  },
+  {
+   "id": "FAY",
+   "sname": "Fayetteville",
+   "lat": 34.9912,
+   "lon": -78.8803,
+   "awos": false,
+   "county": "Cumberland"
+  },
+  {
+   "id": "FBG",
+   "sname": "FORT_BRAGG/SIMMONS",
+   "lat": 35.1318,
+   "lon": -78.9367,
+   "awos": false,
+   "county": "Cumberland"
+  },
+  {
+   "id": "GSB",
+   "sname": "SEYMOUR-JOHNSON_AFB",
+   "lat": 35.3394,
+   "lon": -77.9606,
+   "awos": false,
+   "county": "Wayne"
+  },
+  {
+   "id": "GSO",
+   "sname": "GREENSBORO/PIEDMONT_(ASOS)",
+   "lat": 36.0975,
+   "lon": -79.9436,
+   "awos": false,
+   "county": "Guilford"
+  },
+  {
+   "id": "GWW",
+   "sname": "GOLDSBORO-WAYNE_MUNI_ARPT",
+   "lat": 35.4606,
+   "lon": -77.9649,
+   "awos": true,
+   "county": "Wayne"
+  },
+  {
+   "id": "HBI",
+   "sname": "ASHEBORO_MUNI_ARPT",
+   "lat": 35.6545,
+   "lon": -79.8948,
+   "awos": false,
+   "county": "Randolph"
+  },
+  {
+   "id": "HFF",
+   "sname": "MACKALL_AAF",
+   "lat": 35.0367,
+   "lon": -79.4974,
+   "awos": false,
+   "county": "Scotland"
+  },
+  {
+   "id": "HNZ",
+   "sname": "HENDERSON-OXFORD_ARPT",
+   "lat": 36.36,
+   "lon": -78.53,
+   "awos": false,
+   "county": "Granville"
+  },
+  {
+   "id": "HRJ",
+   "sname": "ERWIN/HARNETT_COUNTY_ARPT",
+   "lat": 35.3786,
+   "lon": -78.7336,
+   "awos": false,
+   "county": "Harnett"
+  },
+  {
+   "id": "INT",
+   "sname": "WINSTON-SALEM/SMITH_(ASOS)",
+   "lat": 36.1337,
+   "lon": -80.222,
+   "awos": false,
+   "county": "Forsyth"
+  },
+  {
+   "id": "IXA",
+   "sname": "Roanoke Rapids",
+   "lat": 36.3298,
+   "lon": -77.6352,
+   "awos": false,
+   "county": "Halifax"
+  },
+  {
+   "id": "JNX",
+   "sname": "SMITHFIELD",
+   "lat": 35.5409,
+   "lon": -78.3903,
+   "awos": true,
+   "county": "Johnston"
+  },
+  {
+   "id": "LHZ",
+   "sname": "LOUISBURG/FRANKLIN_CNTY_ARPT",
+   "lat": 36.0233,
+   "lon": -78.3303,
+   "awos": false,
+   "county": "Wake"
+  },
+  {
+   "id": "MEB",
+   "sname": "LAURINBURG-MAXTON_ARPT_(ASOS)",
+   "lat": 34.7919,
+   "lon": -79.3658,
+   "awos": false,
+   "county": "Robeson"
+  },
+  {
+   "id": "POB",
+   "sname": "POPE_AFB",
+   "lat": 35.1709,
+   "lon": -79.0145,
+   "awos": false,
+   "county": "Cumberland"
+  },
+  {
+   "id": "RCZ",
+   "sname": "ROCKINGHAM",
+   "lat": 34.89,
+   "lon": -79.76,
+   "awos": true,
+   "county": "Richmond"
+  },
+  {
+   "id": "RDU",
+   "sname": "Raleigh / Durham",
+   "lat": 35.8922,
+   "lon": -78.7819,
+   "awos": false,
+   "county": "Wake"
+  },
+  {
+   "id": "RWI",
+   "sname": "ROCKY_MOUNT-WILSON_(ASOS)",
+   "lat": 35.8562,
+   "lon": -77.8919,
+   "awos": false,
+   "county": "Wilson"
+  },
+  {
+   "id": "SCR",
+   "sname": "Siler City",
+   "lat": 35.7043,
+   "lon": -79.5043,
+   "awos": true,
+   "county": "Chatham"
+  },
+  {
+   "id": "SOP",
+   "sname": "SOUTHERN_PINES_AWOS",
+   "lat": 35.2372,
+   "lon": -79.3911,
+   "awos": false,
+   "county": "Moore"
+  },
+  {
+   "id": "TDF",
+   "sname": "ROXBORO",
+   "lat": 36.2849,
+   "lon": -78.9842,
+   "awos": false,
+   "county": "Person"
+  },
+  {
+   "id": "TQV",
+   "sname": "Durham - Duke North Heliport",
+   "lat": 36.007,
+   "lon": -78.9373,
+   "awos": false,
+   "county": "Durham"
+  },
+  {
+   "id": "TTA",
+   "sname": "Sanford - Lee County",
+   "lat": 35.5764,
+   "lon": -79.1034,
+   "awos": true,
+   "county": "Lee"
+  },
+  {
+   "id": "VUJ",
+   "sname": "ALBEMARLE",
+   "lat": 35.4167,
+   "lon": -80.1508,
+   "awos": true,
+   "county": "Stanly"
+  },
+  {
+   "id": "W40",
+   "sname": "Mount Olive",
+   "lat": 35.2225,
+   "lon": -78.0375,
+   "awos": false,
+   "county": "Wayne"
+  }
+ ]
+}
